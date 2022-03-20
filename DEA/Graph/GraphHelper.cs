@@ -71,8 +71,6 @@ namespace DEA
                 {
                     if(FirstSubFolderID.Id != null)
                     {
-                        Console.WriteLine("Folder Name: {0}\n", FirstSubFolderID.DisplayName);
-
                         var SecondSubFolderIDs = await graphClient.Me.MailFolders["Inbox"]
                             .ChildFolders[$"{FirstSubFolderID.Id}"]
                             .ChildFolders
@@ -88,8 +86,6 @@ namespace DEA
                         {
                             if(SecondSubFolderID.Id != null)
                             {
-                                Console.WriteLine("Folder Name: {0}\n", SecondSubFolderID.DisplayName);
-
                                 var ThirdSubFolderIDs = await graphClient.Me.MailFolders["Inbox"]
                                     .ChildFolders[$"{FirstSubFolderID.Id}"]
                                     .ChildFolders[$"{SecondSubFolderID.Id}"]
@@ -107,8 +103,6 @@ namespace DEA
                                     
                                     if(ThirdSubFolderID.Id != null)
                                     {
-                                        Console.WriteLine("Folder Name: {0}\n", ThirdSubFolderID.DisplayName);
-
                                         var GetMessageAttachments = await graphClient.Me.MailFolders["Inbox"]
                                             .ChildFolders[$"{FirstSubFolderID.Id}"]
                                             .ChildFolders[$"{SecondSubFolderID.Id}"]
