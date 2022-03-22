@@ -55,8 +55,11 @@ namespace DEA
 
             try
             {
-                //TODO: 1 Make a loop to read 2 levels of subfolders. Loop them one by one in to the below code.
-                //TODO: 2 Might have to use couple of for loops.
+                //TODO: 1. Save the downloded files into a local folder called downloads with in the program folder.
+                //TODO: 2. Create a folder with uniq name to save the downloaded attachment files.
+                //TODO: 3. Make a custom path to move the downloaded files.
+                //TODO: 4. Check for folders before moving the files.
+                //TODO: 5. Once done, move it to "Import" folder according to the created custom path.
 
                 var FirstSubFolderIDs = await graphClient.Me.MailFolders["Inbox"].ChildFolders
                     .Request()
