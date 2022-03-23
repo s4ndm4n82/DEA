@@ -3,6 +3,10 @@ using Microsoft.Extensions.Configuration;
 
 Console.WriteLine("Download Email Attachments (D.E.A)\n");
 
+//check for the attachment download folder and creates the folder if it's missing.
+GraphHelper.CheckFolders();
+
+//Getting the Graph and checking the settings for Graph.
 var appConfig = LoadAppSettings();
 
 if (appConfig == null)
@@ -83,28 +87,3 @@ static IConfigurationRoot? LoadAppSettings()
 
     return appConfig;
 }
-
-/*static async void ListAttachments()
-{
-    var MailMessages = GraphHelper.GetAttachmentToday().Result;
-
-    Console.WriteLine("Attacments:");
-    Console.WriteLine($"{MailMessages[0]}");
-    Console.WriteLine("\n***************************\n");
-    foreach (var Message in MailMessages)
-    {
-        Console.WriteLine("ID : {0}", Message.Id);
-        Console.WriteLine("Display Name : {0}", Message.DisplayName);     
-
-        foreach (var Attachment in Message.Attachments)
-        {
-            var Item = (FileAttachment)Attachment;
-            var Folder = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            var FilePath = Path.Combine(Folder, Item.Name);
-            System.IO.File.WriteAllBytes(FilePath, Item.ContentBytes);
-        } 
-
-    }
-
-    await GraphHelper.GetAttachmentTodayAsync();
-}*/

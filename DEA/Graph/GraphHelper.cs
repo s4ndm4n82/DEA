@@ -44,7 +44,9 @@ namespace DEA
         }
 
         public static async Task GetAttachmentTodayAsync()
-        {
+        {   
+            string PathImportFolder = @"D:\Import\"; //Path to import folder.            
+
             var DateToDay = DateTime.Now.ToString("dd.MM.yyyy");
 
             var SearchOption = new List<QueryOption>
@@ -69,7 +71,7 @@ namespace DEA
                         fid.DisplayName
                     })
                     .GetAsync();
-
+                
                 foreach(var FirstSubFolderID in FirstSubFolderIDs)
                 {
                     if(FirstSubFolderID.Id != null)
@@ -137,8 +139,52 @@ namespace DEA
                                                     Console.WriteLine("Folder 1 Name: {0}\n", FirstSubFolderID.DisplayName);
                                                     Console.WriteLine("Folder 2 Name: {0}\n", SecondSubFolderID.DisplayName);
                                                     Console.WriteLine("Folder 3 Name: {0}\n", ThirdSubFolderID.DisplayName);
-                                                    Console.WriteLine("\nRandom Number: {0}", FolderNameRnd(10));
                                                     Console.WriteLine("\nAttachment: {0}", Attachment.Name);
+
+                                                    var AttachedItem = (FileAttachment)Attachment;//Attachment properties.
+                                                    //FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
+                                                    var PathFullDownloadFolder = Path.Combine(CheckFolders(), FolderNameRnd(10));
+                                                    
+                                                    if (!System.IO.Directory.Exists(PathFullDownloadFolder))
+                                                    {
+                                                        try
+                                                        {
+                                                            System.IO.Directory.CreateDirectory(PathFullDownloadFolder);
+                                                        }
+                                                        catch (Exception ex)
+                                                        {
+                                                            Console.WriteLine($"Error getting events: {ex.Message}");
+                                                        }
+                                                    }
+                                                    //Fulle path for the attachment to be downloaded with the attachment name
+                                                    var PathFullDownloadFile = Path.Combine(PathFullDownloadFolder, AttachedItem.Name);
+                                                    System.IO.File.WriteAllBytes(PathFullDownloadFile, AttachedItem.ContentBytes);
+
+                                                    /*static async void ListAttachments()
+                                                    {
+                                                        var MailMessages = GraphHelper.GetAttachmentToday().Result;
+
+                                                        Console.WriteLine("Attacments:");
+                                                        Console.WriteLine($"{MailMessages[0]}");
+                                                        Console.WriteLine("\n***************************\n");
+                                                        
+                                                    foreach (var Message in MailMessages)
+                                                        {
+                                                           Console.WriteLine("ID : {0}", Message.Id);
+                                                           Console.WriteLine("Display Name : {0}", Message.DisplayName);     
+
+                                                            foreach (var Attachment in Message.Attachments)
+                                                            {
+                                                                var Item = (FileAttachment)Attachment;
+                                                                var Folder = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                                                                var FilePath = Path.Combine(Folder, Item.Name);
+                                                                System.IO.File.WriteAllBytes(FilePath, Item.ContentBytes);
+                                                            } 
+
+                                                        }
+
+                                                    await GraphHelper.GetAttachmentTodayAsync();
+                                                    }*/
                                                 }
                                             }
                                             Console.WriteLine("\n");                                            
@@ -152,10 +198,11 @@ namespace DEA
             }
             catch (ServiceException ex)
             {
-                Console.WriteLine($"Error getting events: {ex.Message}");                
+                Console.WriteLine($"Error getting events: {ex.Message}");
             }
         }
 
+        //Generate the random 10 digit number for the folder name.
         public static string FolderNameRnd(int RndLength)
         {
             Random RndNumber = new();
@@ -165,6 +212,30 @@ namespace DEA
                 NumString = String.Concat(NumString, RndNumber.Next(10).ToString());
             }
             return NumString;
+        }
+
+        //Check the exsistance of the download folders.
+        public static string CheckFolders()
+        {
+            //Get current execution path.
+            string PathRootFolder = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string DownloadFolderName = "Download";
+            string PathDownloadFolder = Path.Combine(PathRootFolder, DownloadFolderName);
+
+            //Check if download folder exists. If not creates the fodler.
+            if (!System.IO.Directory.Exists(PathDownloadFolder))
+            {
+                try
+                {
+                    System.IO.Directory.CreateDirectory(PathDownloadFolder);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error getting events: {ex.Message}");
+                }
+            }
+
+            return PathDownloadFolder;
         }
     }
 }
