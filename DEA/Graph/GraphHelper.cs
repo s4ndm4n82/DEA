@@ -131,10 +131,22 @@ namespace DEA
                                             Console.WriteLine("Messages");
                                             foreach (var Message in GetMessageAttachments)
                                             {
+                                                Console.WriteLine("\n");
                                                 Console.WriteLine("Subjec: {0}", Message.Subject);
                                                 Console.WriteLine("Has Attachment: {0}", Message.HasAttachments);
+                                                
 
-                                                foreach (var Attachment in Message.Attachments)
+                                                var AttachmentCount = Message.Attachments.Count();
+
+                                                Console.WriteLine("Attachment Count: {0}", AttachmentCount);
+
+                                                for (int i = 0; i < AttachmentCount; i++)
+                                                {
+                                                    var Attachment = Message.Attachments[i];
+                                                    Console.WriteLine("Attachment Name: {0}", Attachment.Name);                                                    
+                                                }
+                                                
+                                                /*foreach (var Attachment in Message.Attachments)
                                                 {
                                                     Console.WriteLine("Folder 1 Name: {0}\n", FirstSubFolderID.DisplayName);
                                                     Console.WriteLine("Folder 2 Name: {0}\n", SecondSubFolderID.DisplayName);
@@ -142,6 +154,7 @@ namespace DEA
                                                     Console.WriteLine("\nAttachment: {0}", Attachment.Name);
 
                                                     var AttachedItem = (FileAttachment)Attachment;//Attachment properties.
+
                                                     //FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
                                                     var PathFullDownloadFolder = Path.Combine(CheckFolders(), FolderNameRnd(10));
                                                     
@@ -158,7 +171,7 @@ namespace DEA
                                                     }
                                                     //Fulle path for the attachment to be downloaded with the attachment name
                                                     var PathFullDownloadFile = Path.Combine(PathFullDownloadFolder, AttachedItem.Name);
-                                                    System.IO.File.WriteAllBytes(PathFullDownloadFile, AttachedItem.ContentBytes);
+                                                    System.IO.File.WriteAllBytes(PathFullDownloadFile, AttachedItem.ContentBytes);*/
 
                                                     /*static async void ListAttachments()
                                                     {
@@ -184,8 +197,8 @@ namespace DEA
                                                         }
 
                                                     await GraphHelper.GetAttachmentTodayAsync();
-                                                    }*/
-                                                }
+                                                    }
+                                                }*/
                                             }
                                             Console.WriteLine("\n");                                            
                                         }                                        
