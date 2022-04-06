@@ -124,11 +124,28 @@ namespace DEA
                                             })
                                             .GetAsync();
 
+                                        //Get Message count that includes attachments
                                         var MessageCount = GetMessageAttachments.Count();
 
                                         if (MessageCount != 0)
                                         {
                                             Console.WriteLine("Messages");
+
+                                            //FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
+                                            var PathFullDownloadFolder = Path.Combine(CheckFolders(), FolderNameRnd(10));
+
+                                            if (!System.IO.Directory.Exists(PathFullDownloadFolder))
+                                            {
+                                                try
+                                                {
+                                                    System.IO.Directory.CreateDirectory(PathFullDownloadFolder);
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    Console.WriteLine($"Error getting events: {ex.Message}");
+                                                }
+                                            }
+
                                             foreach (var Message in GetMessageAttachments)
                                             {
                                                 Console.WriteLine("\n");
@@ -138,67 +155,26 @@ namespace DEA
 
                                                 var AttachmentCount = Message.Attachments.Count();
 
-                                                Console.WriteLine("Attachment Count: {0}", AttachmentCount);
+                                                Console.WriteLine("Attachment Count: {0}", AttachmentCount);                                                
+                                                //TODO: Was looking at while loops to call folder creation once.
 
-                                                for (int i = 0; i < AttachmentCount; i++)
+                                                /*for (int i = 0; i < AttachmentCount; i++)
                                                 {
                                                     var Attachment = Message.Attachments[i];
-                                                    Console.WriteLine("Attachment Name: {0}", Attachment.Name);                                                    
-                                                }
-                                                
-                                                /*foreach (var Attachment in Message.Attachments)
-                                                {
-                                                    Console.WriteLine("Folder 1 Name: {0}\n", FirstSubFolderID.DisplayName);
-                                                    Console.WriteLine("Folder 2 Name: {0}\n", SecondSubFolderID.DisplayName);
-                                                    Console.WriteLine("Folder 3 Name: {0}\n", ThirdSubFolderID.DisplayName);
-                                                    Console.WriteLine("\nAttachment: {0}", Attachment.Name);
+                                                    var AttachmentExtention = Path.GetExtension(Attachment.Name).Replace(".","").ToLower();                                                    
 
-                                                    var AttachedItem = (FileAttachment)Attachment;//Attachment properties.
-
-                                                    //FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
-                                                    var PathFullDownloadFolder = Path.Combine(CheckFolders(), FolderNameRnd(10));
-                                                    
-                                                    if (!System.IO.Directory.Exists(PathFullDownloadFolder))
+                                                    if (AttachmentExtention == "pdf")
                                                     {
-                                                        try
-                                                        {
-                                                            System.IO.Directory.CreateDirectory(PathFullDownloadFolder);
-                                                        }
-                                                        catch (Exception ex)
-                                                        {
-                                                            Console.WriteLine($"Error getting events: {ex.Message}");
-                                                        }
-                                                    }
-                                                    //Fulle path for the attachment to be downloaded with the attachment name
-                                                    var PathFullDownloadFile = Path.Combine(PathFullDownloadFolder, AttachedItem.Name);
-                                                    System.IO.File.WriteAllBytes(PathFullDownloadFile, AttachedItem.ContentBytes);*/
-
-                                                    /*static async void ListAttachments()
-                                                    {
-                                                        var MailMessages = GraphHelper.GetAttachmentToday().Result;
-
-                                                        Console.WriteLine("Attacments:");
-                                                        Console.WriteLine($"{MailMessages[0]}");
-                                                        Console.WriteLine("\n***************************\n");
+                                                        var AttachedItem = (FileAttachment)Attachment;//Attachment properties.
                                                         
-                                                    foreach (var Message in MailMessages)
-                                                        {
-                                                           Console.WriteLine("ID : {0}", Message.Id);
-                                                           Console.WriteLine("Display Name : {0}", Message.DisplayName);     
-
-                                                            foreach (var Attachment in Message.Attachments)
-                                                            {
-                                                                var Item = (FileAttachment)Attachment;
-                                                                var Folder = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                                                                var FilePath = Path.Combine(Folder, Item.Name);
-                                                                System.IO.File.WriteAllBytes(FilePath, Item.ContentBytes);
-                                                            } 
-
-                                                        }
-
-                                                    await GraphHelper.GetAttachmentTodayAsync();
-                                                    }
+                                                        //Fulle path for the attachment to be downloaded with the attachment name
+                                                        var PathFullDownloadFile = Path.Combine(PathFullDownloadFolder, AttachedItem.Name);
+                                                        System.IO.File.WriteAllBytes(PathFullDownloadFile, AttachedItem.ContentBytes);
+                                                    }                                                    
                                                 }*/
+                                                
+
+                                                
                                             }
                                             Console.WriteLine("\n");                                            
                                         }                                        
@@ -213,6 +189,7 @@ namespace DEA
             {
                 Console.WriteLine($"Error getting events: {ex.Message}");
             }
+            //await GraphHelper.GetAttachmentTodayAsync();
         }
 
         //Generate the random 10 digit number for the folder name.
