@@ -134,47 +134,54 @@ namespace DEA
                                             //FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
                                             var PathFullDownloadFolder = Path.Combine(CheckFolders(), FolderNameRnd(10));
 
-                                            if (!System.IO.Directory.Exists(PathFullDownloadFolder))
-                                            {
-                                                try
-                                                {
-                                                    System.IO.Directory.CreateDirectory(PathFullDownloadFolder);
-                                                }
-                                                catch (Exception ex)
-                                                {
-                                                    Console.WriteLine($"Error getting events: {ex.Message}");
-                                                }
-                                            }
+                                            
 
                                             foreach (var Message in GetMessageAttachments)
                                             {
                                                 Console.WriteLine("\n");
                                                 Console.WriteLine("Subjec: {0}", Message.Subject);
-                                                Console.WriteLine("Has Attachment: {0}", Message.HasAttachments);
-                                                
 
+                                                var MessageId = Message.Id.ToString();
                                                 var AttachmentCount = Message.Attachments.Count();
+                                                Console.WriteLine("Attachment Count: {0}", AttachmentCount);
 
-                                                Console.WriteLine("Attachment Count: {0}", AttachmentCount);                                                
+                                                Console.WriteLine("Message ID: {0}", MessageId);
+
                                                 //TODO: Was looking at while loops to call folder creation once.
-
-                                                /*for (int i = 0; i < AttachmentCount; i++)
+                                                for (int i = 0; i < AttachmentCount; i++)
                                                 {
-                                                    var Attachment = Message.Attachments[i];
-                                                    var AttachmentExtention = Path.GetExtension(Attachment.Name).Replace(".","").ToLower();                                                    
+                                                    //var MessageIdInLoop = Message.Id;
+                                                    var Attachment = Message.Attachments[i];                                                    
+                                                    var AttachmentExtention = Path.GetExtension(Attachment.Name).Replace(".","").ToLower();
 
                                                     if (AttachmentExtention == "pdf")
                                                     {
                                                         var AttachedItem = (FileAttachment)Attachment;//Attachment properties.
-                                                        
-                                                        //Fulle path for the attachment to be downloaded with the attachment name
-                                                        var PathFullDownloadFile = Path.Combine(PathFullDownloadFolder, AttachedItem.Name);
-                                                        System.IO.File.WriteAllBytes(PathFullDownloadFile, AttachedItem.ContentBytes);
-                                                    }                                                    
-                                                }*/
-                                                
+                                                        var InLoopMsgId = Message.Id.ToString();
+                                                        Console.WriteLine("In Loop Msg Id: {0}", InLoopMsgId);
+                                                        if (MessageId == InLoopMsgId)
+                                                        {
+                                                            /*if (!System.IO.Directory.Exists(PathFullDownloadFolder))
+                                                            {
+                                                                try
+                                                                {
+                                                                    System.IO.Directory.CreateDirectory(PathFullDownloadFolder);
+                                                                }
+                                                                catch (Exception ex)
+                                                                {
+                                                                    Console.WriteLine($"Error getting events: {ex.Message}");
+                                                                }
+                                                            }
 
-                                                
+                                                            Console.WriteLine("Attachment Name : {0}", AttachedItem.Name);
+                                                            //Fulle path for the attachment to be downloaded with the attachment name
+                                                            var PathFullDownloadFile = Path.Combine(PathFullDownloadFolder, AttachedItem.Name);
+                                                            System.IO.File.WriteAllBytes(PathFullDownloadFile, AttachedItem.ContentBytes);*/
+                                                            Console.WriteLine("Condition working");
+                                                        }
+                                                    }
+                                                }
+                                                Console.WriteLine("-------------------------------------------");
                                             }
                                             Console.WriteLine("\n");                                            
                                         }                                        
