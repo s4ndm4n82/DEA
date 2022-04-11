@@ -44,8 +44,8 @@ namespace DEA
         }
 
         public static async Task GetAttachmentTodayAsync()
-        {   
-            string PathImportFolder = @"D:\Import\"; //Path to import folder.            
+        {
+            var ImportMainFolder = @"D:\Import\"; //Path to import folder. 
 
             var DateToDay = DateTime.Now.ToString("dd.MM.yyyy");
 
@@ -119,7 +119,7 @@ namespace DEA
                                             {
                                                 gma.Subject,
                                                 gma.HasAttachments,
-                                                gma.ConversationIndex,
+                                                gma.ConversationIndex,                                                
                                                 gma.Attachments
                                             })
                                             .GetAsync();
@@ -131,53 +131,54 @@ namespace DEA
                                         {
                                             Console.WriteLine("Messages");
 
-                                            //FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
-                                            var PathFullDownloadFolder = Path.Combine(CheckFolders(), FolderNameRnd(10));
-
-                                            
-
                                             foreach (var Message in GetMessageAttachments)
-                                            {
-                                                Console.WriteLine("\n");
+                                            {   
                                                 Console.WriteLine("Subjec: {0}", Message.Subject);
-
-                                                var MessageId = Message.Id.ToString();
+                                                //Counting the aount of messages with attachments. To loop through below.
                                                 var AttachmentCount = Message.Attachments.Count();
-                                                Console.WriteLine("Attachment Count: {0}", AttachmentCount);
 
-                                                Console.WriteLine("Message ID: {0}", MessageId);
+                                                //Assigning display names.
+                                                var FirstFolderName = FirstSubFolderID.DisplayName;
+                                                var SecondFolderName = SecondSubFolderID.DisplayName;                                                
+
+                                                //Creating the destnation folders.
+                                                string[] MakeDestinationFolderPath = { ImportMainFolder, FirstFolderName, SecondFolderName };
+                                                var DestinationFolderPath = Path.Combine(MakeDestinationFolderPath);                                                
+
+                                                //FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
+                                                //This has to be called here. Don't put it with in the for loop or it will start calling this
+                                                //each time and make folder for each file.
+                                                var PathFullDownloadFolder = Path.Combine(CheckFolders(), FolderNameRnd(10));
 
                                                 //TODO: Was looking at while loops to call folder creation once.
-                                                for (int i = 0; i < AttachmentCount; i++)
+                                                for (int i = 0; i < AttachmentCount; ++i)
                                                 {
-                                                    //var MessageIdInLoop = Message.Id;
+                                                    //Get the message according to index.
                                                     var Attachment = Message.Attachments[i];                                                    
                                                     var AttachmentExtention = Path.GetExtension(Attachment.Name).Replace(".","").ToLower();
-
+                                                    
                                                     if (AttachmentExtention == "pdf")
-                                                    {
+                                                    {                                                        
                                                         var AttachedItem = (FileAttachment)Attachment;//Attachment properties.
-                                                        var InLoopMsgId = Message.Id.ToString();
-                                                        Console.WriteLine("In Loop Msg Id: {0}", InLoopMsgId);
-                                                        if (MessageId == InLoopMsgId)
+                                                        if (!System.IO.Directory.Exists(PathFullDownloadFolder))
                                                         {
-                                                            /*if (!System.IO.Directory.Exists(PathFullDownloadFolder))
+                                                            try
                                                             {
-                                                                try
-                                                                {
-                                                                    System.IO.Directory.CreateDirectory(PathFullDownloadFolder);
-                                                                }
-                                                                catch (Exception ex)
-                                                                {
-                                                                    Console.WriteLine($"Error getting events: {ex.Message}");
-                                                                }
+                                                                System.IO.Directory.CreateDirectory(PathFullDownloadFolder);
                                                             }
+                                                            catch (Exception ex)
+                                                            {
+                                                                Console.WriteLine($"Error getting events: {ex.Message}");
+                                                            }
+                                                        }
+                                                        //Fulle path for the attachment to be downloaded with the attachment name
+                                                        var PathFullDownloadFile = Path.Combine(PathFullDownloadFolder, AttachedItem.Name);
+                                                        System.IO.File.WriteAllBytes(PathFullDownloadFile, AttachedItem.ContentBytes);
 
-                                                            Console.WriteLine("Attachment Name : {0}", AttachedItem.Name);
-                                                            //Fulle path for the attachment to be downloaded with the attachment name
-                                                            var PathFullDownloadFile = Path.Combine(PathFullDownloadFolder, AttachedItem.Name);
-                                                            System.IO.File.WriteAllBytes(PathFullDownloadFile, AttachedItem.ContentBytes);*/
-                                                            Console.WriteLine("Condition working");
+                                                        if (System.IO.File.Exists(PathFullDownloadFile))
+                                                        {
+                                                            //TODO: Work on the file moving.
+                                                            //MoveFolder(PathFullDownloadFolder, DestinationFolderPath);
                                                         }
                                                     }
                                                 }
@@ -233,6 +234,35 @@ namespace DEA
             }
 
             return PathDownloadFolder;
+        }
+
+        //Move the folder to main import folder.
+        private static bool MoveFolder(string SourceFolderPath, string DestiFolderPath)
+        {
+            var MoveDone = false;
+
+            try
+            {
+                if (System.IO.Directory.Exists(SourceFolderPath))
+                {
+                    System.IO.Directory.Delete(SourceFolderPath, true);
+                    System.IO.File.Move(SourceFolderPath, DestiFolderPath);
+                    Console.WriteLine("Moving Done.");
+                    MoveDone = true;
+                }
+                else
+                {
+                    System.IO.File.Move(SourceFolderPath, DestiFolderPath);
+                    Console.WriteLine("Moving Done.");
+                    MoveDone = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting event: {ex.Message}");
+            }
+
+            return MoveDone;
         }
     }
 }
