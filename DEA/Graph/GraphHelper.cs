@@ -160,27 +160,19 @@ namespace DEA
                                                     if (AttachmentExtention == "pdf")
                                                     {                                                        
                                                         var AttachedItem = (FileAttachment)Attachment;//Attachment properties.
-                                                        if (!System.IO.Directory.Exists(PathFullDownloadFolder))
-                                                        {
-                                                            try
-                                                            {
-                                                                System.IO.Directory.CreateDirectory(PathFullDownloadFolder);
-                                                            }
-                                                            catch (Exception ex)
-                                                            {
-                                                                Console.WriteLine($"Error getting events: {ex.Message}");
-                                                            }
-                                                        }
-                                                        //Fulle path for the attachment to be downloaded with the attachment name
-                                                        var PathFullDownloadFile = Path.Combine(PathFullDownloadFolder, AttachedItem.Name);
-                                                        System.IO.File.WriteAllBytes(PathFullDownloadFile, AttachedItem.ContentBytes);
+                                                        string AttachedItemName = AttachedItem.Name;
+                                                        byte[] AttachedItemBytes = AttachedItem.ContentBytes;
 
-                                                        if (System.IO.File.Exists(PathFullDownloadFile))
-                                                        {
-                                                            //TODO: Work on the file moving.
-                                                            //MoveFolder(PathFullDownloadFolder, DestinationFolderPath);
-                                                        }
+                                                        //Download the files and saves them on to the drive.
+                                                        DownloadAttachedFiles(PathFullDownloadFolder, AttachedItemName, AttachedItemBytes);
                                                     }
+                                                }
+                                                //TODO: Check the returned results true or false.
+                                                if (System.IO.Directory.Exists(PathFullDownloadFolder))
+                                                {
+                                                    //Moves the downloaded files to destination folder.
+                                                    //This would create the folder path if it's missing.
+                                                    MoveFolder(PathFullDownloadFolder, DestinationFolderPath);
                                                 }
                                                 Console.WriteLine("-------------------------------------------");
                                             }
@@ -236,33 +228,55 @@ namespace DEA
             return PathDownloadFolder;
         }
 
-        //Move the folder to main import folder.
-        private static bool MoveFolder(string SourceFolderPath, string DestiFolderPath)
+        public static bool DownloadAttachedFiles(string DownloadFolderPath, string DownloadFileName, byte[] DownloadFileData)
         {
-            var MoveDone = false;
+            if (!System.IO.Directory.Exists(DownloadFolderPath))
+            {
+                try
+                {
+                    System.IO.Directory.CreateDirectory(DownloadFolderPath);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error getting events: {ex.Message}");
+                }
+            }
 
             try
             {
-                if (System.IO.Directory.Exists(SourceFolderPath))
-                {
-                    System.IO.Directory.Delete(SourceFolderPath, true);
-                    System.IO.File.Move(SourceFolderPath, DestiFolderPath);
-                    Console.WriteLine("Moving Done.");
-                    MoveDone = true;
-                }
-                else
-                {
-                    System.IO.File.Move(SourceFolderPath, DestiFolderPath);
-                    Console.WriteLine("Moving Done.");
-                    MoveDone = true;
-                }
+                //Fulle path for the attachment to be downloaded with the attachment name
+                var PathFullDownloadFile = Path.Combine(DownloadFolderPath, DownloadFileName);
+                System.IO.File.WriteAllBytes(PathFullDownloadFile, DownloadFileData);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting events: {ex.Message}");
+                return false;
+            }
+        }
+
+        //Move the folder to main import folder.
+        private static bool MoveFolder(string SourceFolderPath, string DestiFolderPath)
+        {
+            try
+            {  
+                var SourceLastFolder = SourceFolderPath.Split(Path.DirectorySeparatorChar).Last();
+                var FullDestinationPath = Path.Combine(DestiFolderPath, SourceLastFolder);
+                Microsoft.VisualBasic.FileIO.FileSystem.MoveDirectory(SourceFolderPath, FullDestinationPath);
+                
+                Console.WriteLine("Moving Done.");
+                return true;
+             
+                /*Console.WriteLine("Soruce : {0}", SourceFolderPath);
+                Console.WriteLine("Destinatio : {0}", DestiFolderPath);
+                Console.WriteLine("Moving Done.");*/
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error getting event: {ex.Message}");
+                return false;
             }
-
-            return MoveDone;
         }
     }
 }
