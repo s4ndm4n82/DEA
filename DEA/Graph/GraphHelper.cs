@@ -167,13 +167,21 @@ namespace DEA
                                                         DownloadAttachedFiles(PathFullDownloadFolder, AttachedItemName, AttachedItemBytes);
                                                     }
                                                 }
-                                                //TODO: Check the returned results true or false.
-                                                if (System.IO.Directory.Exists(PathFullDownloadFolder))
+                                                //Checking the folder and files with in it excists.
+                                                string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(CheckFolders()); //Use the main path not the entire download path
+                                                string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder);
+
+                                                if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0)
                                                 {
                                                     //Moves the downloaded files to destination folder.
                                                     //This would create the folder path if it's missing.
                                                     MoveFolder(PathFullDownloadFolder, DestinationFolderPath);
                                                 }
+
+                                                //TODO: Figure out how to move the email once the files are moved.
+                                                string MessageID = Message.Id;
+                                                Console.WriteLine("Message ID: {0}");
+
                                                 Console.WriteLine("-------------------------------------------");
                                             }
                                             Console.WriteLine("\n");                                            
