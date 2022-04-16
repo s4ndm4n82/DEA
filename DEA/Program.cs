@@ -11,7 +11,7 @@ var appConfig = LoadAppSettings();
 
 if (appConfig == null)
 {
-    Console.WriteLine("Missing or invalid appsettings.json...exiting");
+    Console.WriteLine("Set the graph API pemissions. Using dotnet user-secrets set .... They don't exsits in this computer.");
     return;
 }
 
