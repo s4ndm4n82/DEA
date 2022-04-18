@@ -45,6 +45,7 @@ namespace DEA
 
         public static async Task GetAttachmentTodayAsync()
         {
+            //TODO: 1. Get the auto permissions working now. App is almost done.
             var ImportMainFolder = @"D:\Import\"; //Path to import folder. 
 
             var DateToDay = DateTime.Now.ToString("dd.MM.yyyy");
@@ -247,23 +248,16 @@ namespace DEA
                                                             {
                                                                 var MessageID2 = Message.Id;
                                                                 var ErrorFolderId = ErrorFolder.Id;
-                                                                //testing the below code to forwar the email.
-                                                                var MsgDetails = await graphClient.Me.MailFolders["Inbox"]
-                                                                        .ChildFolders[$"{FirstSubFolderID.Id}"]
-                                                                        .ChildFolders[$"{SecondSubFolderID.Id}"]
-                                                                        .ChildFolders[$"{ErrorFolderId}"]
-                                                                        .Messages[$"{MessageID2}"]
-                                                                        .Request()
-                                                                        .Select(em => new
-                                                                        {
-                                                                            em.Subject,
-                                                                            em.From
-                                                                        })
-                                                                        .GetAsync();
-                                                                //var msg = MsgDetails.From;
 
-                                                                Console.WriteLine("Email Subject: {0}", MsgDetails.Subject);
-                                                                Console.WriteLine("From Email: {0}", MsgDetails.From);
+                                                                var ForwardDone = await ForwardEmtpyEmail(FirstSubFolderID.Id, SecondSubFolderID.Id, ErrorFolderId, MessageID2);
+                                                                if (ForwardDone.Item2)
+                                                                {
+                                                                    Console.WriteLine($"Email Forwarded to {ForwardDone.Item1}");
+                                                                }
+                                                                else
+                                                                {
+                                                                    Console.WriteLine($"Email not Forawarded. Exception: {ForwardDone.Item1}");
+                                                                }
 
                                                                 if (await MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, ThirdSubFolderID.Id, MessageID2, ErrorFolderId))
                                                                 {
@@ -371,6 +365,59 @@ namespace DEA
             {
                 Console.WriteLine($"Error getting event: {ex.Message}");
                 return false;
+            }
+        }
+
+        private static async Task<(string?,bool)> ForwardEmtpyEmail(string FolderId1, string FolderId2, string ErrFolderId, string MsgId2)
+        {
+            var MailSent = false;
+            try
+            {
+                //Testing the below code to forwar the email.
+                var MsgDetails = await graphClient.Me.MailFolders["Inbox"]
+                        .ChildFolders[$"{FolderId1}"]
+                        .ChildFolders[$"{FolderId2}"]
+                        .ChildFolders[$"{ErrFolderId}"]
+                        .Messages[$"{MsgId2}"]
+                        .Request()
+                        .Select(em => new
+                        {
+                            em.Subject,
+                            em.From
+                        })
+                        .GetAsync();
+
+                var FromName = MsgDetails.From.EmailAddress.Name;
+                var FromEmail = MsgDetails.From.EmailAddress.Address;
+                var MailComment = "Hi,<br /> This below email doesn't contain any attachment.";
+
+                var toRecipients = new List<Recipient>()
+                {
+                    new Recipient
+                    {
+                        EmailAddress = new EmailAddress
+                        {
+                            Name = FromName,
+                            Address = FromEmail
+                        }
+                    }
+                };
+
+                await graphClient.Me.MailFolders["Inbox"]
+                    .ChildFolders[$"{FolderId1}"]
+                    .ChildFolders[$"{FolderId2}"]
+                    .ChildFolders[$"{ErrFolderId}"]
+                    .Messages[$"{MsgId2}"]
+                    .Forward(toRecipients, null, MailComment)
+                    .Request()
+                    .PostAsync();
+
+                
+                return (FromEmail, MailSent = true);
+            }
+            catch (Exception ex)
+            {
+                return (ex.Message, MailSent = false);
             }
         }
 
