@@ -210,9 +210,7 @@ namespace DEA
                                                                         else
                                                                         {
                                                                             Console.WriteLine("Email Did not Move ....");
-                                                                        }
-                                                                        //TODO: 1. Need to add move emails to error if no attachments or files not supported.
-                                                                        //TODO: 2. Change the permission method to auto from the current manual method.
+                                                                        }                                                                        
                                                                     }
                                                                 }
                                                             }
@@ -373,7 +371,6 @@ namespace DEA
             var MailSent = false;
             try
             {
-                //Testing the below code to forwar the email.
                 var MsgDetails = await graphClient.Me.MailFolders["Inbox"]
                         .ChildFolders[$"{FolderId1}"]
                         .ChildFolders[$"{FolderId2}"]
