@@ -16,6 +16,9 @@ if (appConfig == null)
 }
 
 var appId = appConfig["appId"];
+var TenantId = appConfig["TenantId"];
+var Instance = appConfig["Instance"];
+var GraphApiUrl = appConfig["GraphApiUrl"];
 var scopesString = appConfig["scopes"];
 var scopes = scopesString.Split(';');
 
