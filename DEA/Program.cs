@@ -19,16 +19,18 @@ var appId = appConfig["appId"];
 var TenantId = appConfig["TenantId"];
 var Instance = appConfig["Instance"];
 var GraphApiUrl = appConfig["GraphApiUrl"];
-var scopesString = appConfig["scopes"];
-var scopes = scopesString.Split(';');
-
+//var scopesString = appConfig["scopes"];
+//var scopes = scopesString.Split(';');
+string[] scopes = new string[] { "https://graph.microsoft.com/.default" };
 // Initialize Graph client
-GraphHelper.Initialize(appId, scopes, (code, cancellation) => {
+/*GraphHelper.Initialize(appId, scopes, (code, cancellation) => {
     Console.WriteLine(code.Message);
     return Task.FromResult(0);
-});
+});*/
 
-string? accessToken = GraphHelper.GetAccessTokenAsync(scopes).Result;
+GraphHelper.InitializeAuto(appId, Instance, TenantId, GraphApiUrl, scopes);
+
+//string? accessToken = GraphHelper.GetAccessTokenAsync(scopes).Result;
 
 int userChoice = -0x1; // Value is -1 in hex.
 
@@ -61,7 +63,7 @@ while (userChoice != 0)
 
         case 1:
             // Display Access Token.
-            Console.WriteLine("Access token: {0}\n", accessToken);
+           //Console.WriteLine("Access token: {0}\n", accessToken);
             break;
 
         case 2:

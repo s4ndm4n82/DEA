@@ -1,6 +1,8 @@
 ﻿using Azure.Core;
 using Azure.Identity;
 using Microsoft.Graph;
+using Microsoft.Identity.Client;
+using System.Net.Http.Headers;
 
 namespace DEA
 {
@@ -8,6 +10,9 @@ namespace DEA
     {
         private static DeviceCodeCredential? tokenCredentials;
         private static GraphServiceClient? graphClient;
+        private static AuthenticationResult token;
+        
+        private static IPublicClientApplication? application;
 
         public static void Initialize(string clientID, string[] scopes,
                                       Func<DeviceCodeInfo, CancellationToken, Task> callBack)
@@ -16,12 +21,39 @@ namespace DEA
             graphClient = new GraphServiceClient(tokenCredentials, scopes);
         }
 
-        public static async Task<string> GetAccessTokenAsync(string[] scopes)
+        public static async void InitializeAuto(string ClientID, string InstanceID, string TenantID, string GraphUrl, string[] scopes)
+        {
+            string auth = string.Concat(InstanceID, TenantID);
+            application = PublicClientApplicationBuilder.Create(ClientID)
+                                        .WithAuthority(auth)
+                                        .WithDefaultRedirectUri()
+                                        .Build();
+
+            try
+            {
+                var accounts = await application.GetAccountsAsync();
+
+                graphClient = new GraphServiceClient(GraphUrl,
+                    new DelegateAuthenticationProvider(async (requestMessage) =>
+                    {
+                        token = await application.AcquireTokenSilent(scopes, accounts.FirstOrDefault()).ExecuteAsync();
+                        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", token.AccessToken);
+                    }
+                    ));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception thrown: {0}", ex.Message);
+            }  
+        }
+
+        /*public static async Task<string> GetAccessTokenAsync(string[] scopes)
         {
             var context = new TokenRequestContext(scopes);
+            
             var response = await tokenCredentials.GetTokenAsync(context);
             return response.Token;
-        }
+        }*/
 
         public static async Task<User> GetMeAsync()
         {
@@ -279,9 +311,9 @@ namespace DEA
                     }
                 }
             }
-            catch (ServiceException ex)
+            catch (Exception ex)
             {
-                Console.WriteLine($"Error getting events: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
 
