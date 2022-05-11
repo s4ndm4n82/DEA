@@ -19,6 +19,7 @@ var appId = appConfig["appId"];
 var TenantId = appConfig["TenantId"];
 var Instance = appConfig["Instance"];
 var GraphApiUrl = appConfig["GraphApiUrl"];
+var ClientSecret = appConfig["ClientSecret"];
 //var scopesString = appConfig["scopes"];
 //var scopes = scopesString.Split(';');
 string[] scopes = new string[] { "https://graph.microsoft.com/.default" };
@@ -28,7 +29,7 @@ string[] scopes = new string[] { "https://graph.microsoft.com/.default" };
     return Task.FromResult(0);
 });*/
 
-GraphHelper.InitializeAuto(appId, Instance, TenantId, GraphApiUrl, scopes);
+GraphHelper.InitializeAuto(appId, Instance, TenantId, GraphApiUrl, ClientSecret, scopes);
 
 //string? accessToken = GraphHelper.GetAccessTokenAsync(scopes).Result;
 
@@ -68,7 +69,8 @@ while (userChoice != 0)
 
         case 2:
             // Download the attachments.
-            await GraphHelper.GetAttachmentTodayAsync();
+            //await GraphHelper.GetAttachmentTodayAsync();
+            GraphHelper.InitializeAuto(appId, Instance, TenantId, GraphApiUrl, ClientSecret, scopes);
             break;
 
         default:

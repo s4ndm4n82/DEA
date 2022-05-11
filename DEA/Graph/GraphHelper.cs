@@ -21,7 +21,7 @@ namespace DEA
             graphClient = new GraphServiceClient(tokenCredentials, scopes);
         }
 
-        public static async void InitializeAuto(string ClientID, string InstanceID, string TenantID, string GraphUrl, string[] scopes)
+        public static async void InitializeAuto(string ClientID, string InstanceID, string TenantID, string GraphUrl, string ClientSecret, string[] scopes)
         {
             string auth = string.Concat(InstanceID, TenantID);
             application = PublicClientApplicationBuilder.Create(ClientID)
@@ -29,21 +29,28 @@ namespace DEA
                                         .WithDefaultRedirectUri()
                                         .Build();
 
+            IEnumerable<IAccount> accounts = await application.GetAccountsAsync().ConfigureAwait(false);
+            IAccount FirstAccount = accounts.FirstOrDefault();
+            var account = "test@digitalcapture.no";
+            Console.WriteLine("First Account: {0}", FirstAccount);
+
             try
             {
-                var accounts = await application.GetAccountsAsync();
-
-                graphClient = new GraphServiceClient(GraphUrl,
+                /*graphClient = new GraphServiceClient(GraphUrl,
                     new DelegateAuthenticationProvider(async (requestMessage) =>
                     {
                         token = await application.AcquireTokenSilent(scopes, accounts.FirstOrDefault()).ExecuteAsync();
                         requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", token.AccessToken);
                     }
-                    ));
+                    ));*/
+                token = await application.AcquireTokenSilent(scopes, FirstAccount).ExecuteAsync();
+                Console.WriteLine("Token: {0}", token.AccessToken);
             }
-            catch (Exception ex)
+            catch (MsalUiRequiredException ex)
             {
                 Console.WriteLine("Exception thrown: {0}", ex.Message);
+                token = await application.AcquireTokenInteractive(scopes).ExecuteAsync();
+                Console.WriteLine("Token: {0}", token.AccessToken);
             }  
         }
 
