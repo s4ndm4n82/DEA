@@ -15,21 +15,20 @@ if (appConfig == null)
     return;
 }
 
-var appId = appConfig["appId"];
+var ClientId = appConfig["ClientId"];
 var TenantId = appConfig["TenantId"];
 var Instance = appConfig["Instance"];
 var GraphApiUrl = appConfig["GraphApiUrl"];
 var ClientSecret = appConfig["ClientSecret"];
-//var scopesString = appConfig["scopes"];
-//var scopes = scopesString.Split(';');
 string[] scopes = new string[] { "https://graph.microsoft.com/.default" };
+
 // Initialize Graph client
 /*GraphHelper.Initialize(appId, scopes, (code, cancellation) => {
     Console.WriteLine(code.Message);
     return Task.FromResult(0);
 });*/
 
-GraphHelper.InitializeAuto(appId, Instance, TenantId, GraphApiUrl, ClientSecret, scopes);
+GraphHelper.InitializeAuto(ClientId, Instance, TenantId, GraphApiUrl, ClientSecret, scopes);
 
 //string? accessToken = GraphHelper.GetAccessTokenAsync(scopes).Result;
 
@@ -69,8 +68,8 @@ while (userChoice != 0)
 
         case 2:
             // Download the attachments.
-            //await GraphHelper.GetAttachmentTodayAsync();
-            GraphHelper.InitializeAuto(appId, Instance, TenantId, GraphApiUrl, ClientSecret, scopes);
+            await GraphHelper.GetAttachmentTodayAsync();
+            //GraphHelper.InitializeAuto(ClientId, Instance, TenantId, GraphApiUrl, ClientSecret, scopes);
             break;
 
         default:
@@ -86,8 +85,7 @@ static IConfigurationRoot? LoadAppSettings()
         .Build();
 
     // Check for required settings
-    if (string.IsNullOrEmpty(appConfig["appId"]) ||
-        string.IsNullOrEmpty(appConfig["scopes"]))
+    if (string.IsNullOrEmpty(appConfig["ClientId"]))
     {
         return null;
     }

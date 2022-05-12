@@ -9,10 +9,10 @@ namespace DEA
     public class GraphHelper
     {
         private static DeviceCodeCredential? tokenCredentials;
-        private static GraphServiceClient? graphClient;
-        private static AuthenticationResult token;
-        
-        private static IPublicClientApplication? application;
+        private static GraphServiceClient? graphClient;        
+        private static AuthenticationResult? AuthToken;
+
+        private static IConfidentialClientApplication? application;
 
         public static void Initialize(string clientID, string[] scopes,
                                       Func<DeviceCodeInfo, CancellationToken, Task> callBack)
@@ -24,33 +24,41 @@ namespace DEA
         public static async void InitializeAuto(string ClientID, string InstanceID, string TenantID, string GraphUrl, string ClientSecret, string[] scopes)
         {
             string auth = string.Concat(InstanceID, TenantID);
-            application = PublicClientApplicationBuilder.Create(ClientID)
-                                        .WithAuthority(auth)
-                                        .WithDefaultRedirectUri()
-                                        .Build();
 
-            IEnumerable<IAccount> accounts = await application.GetAccountsAsync().ConfigureAwait(false);
-            IAccount FirstAccount = accounts.FirstOrDefault();
-            var account = "test@digitalcapture.no";
-            Console.WriteLine("First Account: {0}", FirstAccount);
+            application = ConfidentialClientApplicationBuilder.Create(ClientID)
+                          .WithClientSecret(ClientSecret)
+                          .WithAuthority(new Uri(auth))
+                          .Build();
+
+            Console.WriteLine("Auth: {0}", auth);
+            Console.WriteLine("Client Secrets: {0}", ClientSecret);
 
             try
             {
-                /*graphClient = new GraphServiceClient(GraphUrl,
+                graphClient = new GraphServiceClient(GraphUrl,
                     new DelegateAuthenticationProvider(async (requestMessage) =>
                     {
-                        token = await application.AcquireTokenSilent(scopes, accounts.FirstOrDefault()).ExecuteAsync();
-                        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", token.AccessToken);
+                        AuthToken = await application.AcquireTokenForClient(scopes).ExecuteAsync();
+                        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", AuthToken.AccessToken);
                     }
-                    ));*/
-                token = await application.AcquireTokenSilent(scopes, FirstAccount).ExecuteAsync();
-                Console.WriteLine("Token: {0}", token.AccessToken);
+                    ));
+                /*result = await application.AcquireTokenForClient(scopes)
+                         .ExecuteAsync();
+
+                Console.WriteLine("Token: {0}", result.AccessToken);*/
             }
             catch (MsalUiRequiredException ex)
             {
-                Console.WriteLine("Exception thrown: {0}", ex.Message);
-                token = await application.AcquireTokenInteractive(scopes).ExecuteAsync();
-                Console.WriteLine("Token: {0}", token.AccessToken);
+                // The application doesn't have sufficient permissions.
+                // - Did you declare enough app permissions during app creation?
+                // - Did the tenant admin grant permissions to the application?
+                Console.WriteLine("Exception: {0}", ex.Message);
+            }
+            catch (MsalServiceException ex) when (ex.Message.Contains("AADSTS70011"))
+            {
+                // Invalid scope. The scope has to be in the form "https://resourceurl/.default"
+                // Mitigation: Change the scope to be as expected.
+                Console.WriteLine("Scope provided is not supported");
             }  
         }
 
@@ -97,7 +105,8 @@ namespace DEA
 
             try
             {
-                var FirstSubFolderIDs = await graphClient.Me.MailFolders["Inbox"].ChildFolders
+                //var FirstSubFolderIDs = await graphClient.Me.MailFolders["Inbox"].ChildFolders
+                var FirstSubFolderIDs = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"].ChildFolders
                     .Request()
                     .Select(fid => new
                     {
@@ -110,7 +119,8 @@ namespace DEA
                 {
                     if(FirstSubFolderID.Id != null)
                     {
-                        var SecondSubFolderIDs = await graphClient.Me.MailFolders["Inbox"]
+                        //var SecondSubFolderIDs = await graphClient.Me.MailFolders["Inbox"]
+                        var SecondSubFolderIDs = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
                             .ChildFolders[$"{FirstSubFolderID.Id}"]
                             .ChildFolders
                             .Request()
@@ -125,7 +135,8 @@ namespace DEA
                         {
                             if(SecondSubFolderID.Id != null)
                             {
-                                var ThirdSubFolderIDs = await graphClient.Me.MailFolders["Inbox"]
+                                //var ThirdSubFolderIDs = await graphClient.Me.MailFolders["Inbox"]
+                                var ThirdSubFolderIDs = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
                                     .ChildFolders[$"{FirstSubFolderID.Id}"]
                                     .ChildFolders[$"{SecondSubFolderID.Id}"]
                                     .ChildFolders
@@ -141,7 +152,8 @@ namespace DEA
                                 {
                                     if(ThirdSubFolderID.DisplayName == "New")
                                     {
-                                        var GetMessageAttachments = await graphClient.Me.MailFolders["Inbox"]
+                                        //var GetMessageAttachments = await graphClient.Me.MailFolders["Inbox"]
+                                        var GetMessageAttachments = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
                                             .ChildFolders[$"{FirstSubFolderID.Id}"]
                                             .ChildFolders[$"{SecondSubFolderID.Id}"]
                                             .ChildFolders[$"{ThirdSubFolderID.Id}"]
@@ -227,7 +239,8 @@ namespace DEA
                                                             try
                                                             {
                                                                 //Loop through and selects only the downloaded folder.
-                                                                var DestinationDetails = await graphClient.Me.MailFolders["Inbox"]
+                                                                //var DestinationDetails = await graphClient.Me.MailFolders["Inbox"]
+                                                                var DestinationDetails = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
                                                                     .ChildFolders[$"{FirstSubFolderID.Id}"]
                                                                     .ChildFolders[$"{SecondSubFolderID.Id}"]
                                                                     .ChildFolders
@@ -272,7 +285,8 @@ namespace DEA
                                                         };
 
                                                         //Loop thorugh to Select only error folder from the subfolders.
-                                                        var ErroFolderDetails = await graphClient.Me.MailFolders["Inbox"]
+                                                        //var ErroFolderDetails = await graphClient.Me.MailFolders["Inbox"]
+                                                        var ErroFolderDetails = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
                                                             .ChildFolders[$"{FirstSubFolderID.Id}"]
                                                             .ChildFolders[$"{SecondSubFolderID.Id}"]
                                                             .ChildFolders
@@ -410,7 +424,8 @@ namespace DEA
             var MailSent = false;
             try
             {
-                var MsgDetails = await graphClient.Me.MailFolders["Inbox"]
+                //var MsgDetails = await graphClient.Me.MailFolders["Inbox"]
+                var MsgDetails = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
                         .ChildFolders[$"{FolderId1}"]
                         .ChildFolders[$"{FolderId2}"]
                         .ChildFolders[$"{ErrFolderId}"]
@@ -439,7 +454,8 @@ namespace DEA
                     }
                 };
 
-                await graphClient.Me.MailFolders["Inbox"]
+                //await graphClient.Me.MailFolders["Inbox"]
+                await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
                     .ChildFolders[$"{FolderId1}"]
                     .ChildFolders[$"{FolderId2}"]
                     .ChildFolders[$"{ErrFolderId}"]
@@ -463,7 +479,8 @@ namespace DEA
             try
             {
                 //Graph api call to move the email message.
-                await graphClient.Me.MailFolders["Inbox"]
+                //await graphClient.Me.MailFolders["Inbox"]
+                await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
                     .ChildFolders[$"{FirstFolderId}"]
                     .ChildFolders[$"{SecondFolderId}"]
                     .ChildFolders[$"{ThirdFolderId}"]
