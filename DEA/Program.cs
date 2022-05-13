@@ -22,15 +22,13 @@ var GraphApiUrl = appConfig["GraphApiUrl"];
 var ClientSecret = appConfig["ClientSecret"];
 string[] scopes = new string[] { "https://graph.microsoft.com/.default" };
 
-// Initialize Graph client
+//Initialize Graph client using device code
 /*GraphHelper.Initialize(appId, scopes, (code, cancellation) => {
     Console.WriteLine(code.Message);
     return Task.FromResult(0);
 });*/
 
-GraphHelper.InitializeAuto(ClientId, Instance, TenantId, GraphApiUrl, ClientSecret, scopes);
-
-//string? accessToken = GraphHelper.GetAccessTokenAsync(scopes).Result;
+GraphHelper.InitializeGraphClient(ClientId, Instance, TenantId, GraphApiUrl, ClientSecret, scopes);
 
 int userChoice = -0x1; // Value is -1 in hex.
 
@@ -39,8 +37,7 @@ while (userChoice != 0)
     //Console.Clear();
     Console.WriteLine("Please select one of the options from below:");
     Console.WriteLine("0. Exit");
-    Console.WriteLine("1. Display Access Token");
-    Console.WriteLine("2. Download Attachments");
+    Console.WriteLine("1. Download Attachments");
 
     try
     {
@@ -60,13 +57,8 @@ while (userChoice != 0)
             Thread.Sleep(1000);
             Environment.Exit(0);
             break;
-
+        
         case 1:
-            // Display Access Token.
-           //Console.WriteLine("Access token: {0}\n", accessToken);
-            break;
-
-        case 2:
             // Download the attachments.
             await GraphHelper.GetAttachmentTodayAsync();
             //GraphHelper.InitializeAuto(ClientId, Instance, TenantId, GraphApiUrl, ClientSecret, scopes);

@@ -14,6 +14,7 @@ namespace DEA
 
         private static IConfidentialClientApplication? application;
 
+        //DeviviceCode authentication
         public static void Initialize(string clientID, string[] scopes,
                                       Func<DeviceCodeInfo, CancellationToken, Task> callBack)
         {
@@ -21,7 +22,7 @@ namespace DEA
             graphClient = new GraphServiceClient(tokenCredentials, scopes);
         }
 
-        public static async void InitializeAuto(string ClientID, string InstanceID, string TenantID, string GraphUrl, string ClientSecret, string[] scopes)
+        /*public static async void InitializeAuto(string ClientID, string InstanceID, string TenantID, string GraphUrl, string ClientSecret, string[] scopes)
         {
             string auth = string.Concat(InstanceID, TenantID);
 
@@ -45,7 +46,7 @@ namespace DEA
                 /*result = await application.AcquireTokenForClient(scopes)
                          .ExecuteAsync();
 
-                Console.WriteLine("Token: {0}", result.AccessToken);*/
+                Console.WriteLine("Token: {0}", result.AccessToken);
             }
             catch (MsalUiRequiredException ex)
             {
@@ -59,16 +60,65 @@ namespace DEA
                 // Invalid scope. The scope has to be in the form "https://resourceurl/.default"
                 // Mitigation: Change the scope to be as expected.
                 Console.WriteLine("Scope provided is not supported");
-            }  
+            }
+        }*/
+
+        public static void InitializeGraphClient(string ClientId, string InstanceId, string TenantId, string GraphUrl, string ClientSecret, string[] scopes)
+        {   
+            try
+            {
+                graphClient = new GraphServiceClient(GraphUrl,
+                    new DelegateAuthenticationProvider(async (requestMessage) =>
+                    {
+                        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", await GetAuthTokenWithOutUser(ClientId, InstanceId, TenantId, ClientSecret, scopes));
+                    }
+                    ));             
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception: {0}", ex.Message);
+            }
         }
 
-        /*public static async Task<string> GetAccessTokenAsync(string[] scopes)
+        public static async Task<string> GetAuthTokenWithOutUser(string ClientID, string InstanceID, string TenantID, string ClientSecret, string[] scopes)
         {
-            var context = new TokenRequestContext(scopes);
-            
-            var response = await tokenCredentials.GetTokenAsync(context);
-            return response.Token;
-        }*/
+            string auth = string.Concat(InstanceID, TenantID);
+
+            application = ConfidentialClientApplicationBuilder.Create(ClientID)
+                          .WithClientSecret(ClientSecret)
+                          .WithAuthority(new Uri(auth))
+                          .Build();
+            try
+            {
+                //AuthToken = await application.AcquireTokenForClient(scopes).ExecuteAsync();
+                AuthToken = null;
+            }
+            catch (MsalUiRequiredException ex)
+            {
+                // The application doesn't have sufficient permissions.
+                // - Did you declare enough app permissions during app creation?
+                // - Did the tenant admin grant permissions to the application?
+                Console.WriteLine("Exception: {0}", ex.Message);
+            }
+            catch (MsalServiceException ex) when (ex.Message.Contains("AADSTS70011"))
+            {
+                // Invalid scope. The scope has to be in the form "https://resourceurl/.default"
+                // Mitigation: Change the scope to be as expected.
+                Console.WriteLine("Scope provided is not supported");
+            }
+
+            if(AuthToken.AccessToken == null)
+            {
+                //Initialize Graph client using device code
+                Initialize(ClientID, scopes, (code, cancellation) => {
+                    Console.WriteLine(code.Message);
+                    return Task.FromResult(0);
+                });
+            }
+
+            return AuthToken.AccessToken;
+
+        }
 
         public static async Task<User> GetMeAsync()
         {
