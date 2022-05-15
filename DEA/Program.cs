@@ -1,41 +1,50 @@
 ﻿using DEA;
 using Microsoft.Extensions.Configuration;
 
+// Aplication title just for fun.
 Console.WriteLine("Download Email Attachments (D.E.A)\n");
 
-//check for the attachment download folder and creates the folder if it's missing.
+// Check for the attachment download folder and creates the folder if it's missing.
 GraphHelper.CheckFolders();
 
-//Getting the Graph and checking the settings for Graph.
+// Getting the Graph and checking the settings for Graph.
 var appConfig = LoadAppSettings();
 
+// If appConfig returns null message is shown.
 if (appConfig == null)
 {
-    Console.WriteLine("Set the graph API pemissions. Using dotnet user-secrets set .... They don't exsits in this computer.");
+    Console.WriteLine("Set the Graph API permissions. Using dotnet user-secrets set .... User secrets is not correct.");
     return;
 }
 
-var appId = appConfig["appId"];
-var scopesString = appConfig["scopes"];
-var scopes = scopesString.Split(';');
+// Assings all the setting to variables.
+var ClientId = appConfig["ClientId"];
+var TenantId = appConfig["TenantId"];
+var Instance = appConfig["Instance"];
+var GraphApiUrl = appConfig["GraphApiUrl"];
+var ClientSecret = appConfig["ClientSecret"];
+string[] scopes = new string[] { "https://graph.microsoft.com/.default" };// Gets the application permissions which are set from the Azure AD.
 
-// Initialize Graph client
-GraphHelper.Initialize(appId, scopes, (code, cancellation) => {
-    Console.WriteLine(code.Message);
-    return Task.FromResult(0);
-});
+// Calls InitializeGraphClient to get the token and connect to the graph API.
+if (!await GraphHelper.InitializeGraphClient(ClientId, Instance, TenantId, GraphApiUrl, ClientSecret, scopes))
+{
+    Console.WriteLine("Graph client initialization faild.");
+}
+else
+{
+    Console.WriteLine("Graph client initialization successful.");
+    Console.WriteLine(Environment.NewLine);
+    await GraphHelper.GetAttachmentTodayAsync();
+}
 
-string? accessToken = GraphHelper.GetAccessTokenAsync(scopes).Result;
-
-int userChoice = -0x1; // Value is -1 in hex.
+/*int userChoice = -0x1; // Value is -1 in hex.
 
 while (userChoice != 0)
 {
     //Console.Clear();
     Console.WriteLine("Please select one of the options from below:");
     Console.WriteLine("0. Exit");
-    Console.WriteLine("1. Display Access Token");
-    Console.WriteLine("2. Download Attachments");
+    Console.WriteLine("1. Download Attachments");
 
     try
     {
@@ -55,13 +64,8 @@ while (userChoice != 0)
             Thread.Sleep(1000);
             Environment.Exit(0);
             break;
-
+        
         case 1:
-            // Display Access Token.
-            Console.WriteLine("Access token: {0}\n", accessToken);
-            break;
-
-        case 2:
             // Download the attachments.
             await GraphHelper.GetAttachmentTodayAsync();
             break;
@@ -70,17 +74,22 @@ while (userChoice != 0)
             Console.WriteLine("Not a valid choice. Try again.");
             break;
     }
-}
+}*/
 
+// Loads the settings from user sectrets file.
 static IConfigurationRoot? LoadAppSettings()
 {
     var appConfig = new ConfigurationBuilder()
         .AddUserSecrets<Program>()
         .Build();
 
-    // Check for required settings
-    if (string.IsNullOrEmpty(appConfig["appId"]) ||
-        string.IsNullOrEmpty(appConfig["scopes"]))
+    // Check for required settings in app secrets.
+    if (string.IsNullOrEmpty(appConfig["ClientId"])||
+        string.IsNullOrEmpty(appConfig["TenantId"])||
+        string.IsNullOrEmpty(appConfig["Instance"])||
+        string.IsNullOrEmpty(appConfig["GraphApiUrl"])||
+        string.IsNullOrEmpty(appConfig["TenantId"])||
+        string.IsNullOrEmpty(appConfig["ClientSecret"]))
     {
         return null;
     }
