@@ -1,6 +1,4 @@
-﻿using Azure.Core;
-using Azure.Identity;
-using Microsoft.Graph;
+﻿using Microsoft.Graph;
 using Microsoft.Identity.Client;
 using System.Net.Http.Headers;
 
