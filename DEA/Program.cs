@@ -34,7 +34,7 @@ else
 {
     Console.WriteLine("Graph client initialization successful.");
     Console.WriteLine(Environment.NewLine);
-    await GraphHelper.GetAttachmentTodayAsync();
+    await GraphHelper.InitializGetAttachment();
 }
 
 /*int userChoice = -0x1; // Value is -1 in hex.

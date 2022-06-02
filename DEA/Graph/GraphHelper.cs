@@ -61,7 +61,31 @@ namespace DEA
 
         }
 
-        public static async Task GetAttachmentTodayAsync()
+        public static async Task InitializGetAttachment()
+        {
+            List<string> EmailCheckList = new List<string>();
+
+            string[] EmailsList =
+            {
+                "accounting@efakturamottak.no"
+                /*"accounting02@efakturamottak.no",
+                "accounting03@efakturamottak.no",
+                "accounting04@efakturamottak.no",
+                "accounting05@efakturamottak.no",
+                "atc@efakturamottak.no",
+                "atc02@efakturamottak.no"*/
+            };
+
+            EmailCheckList.AddRange(EmailsList);
+
+            foreach (string Email in EmailCheckList)
+            {
+                //TODO: 1. Accounting emails folder structer ends at level 2 subfolders. Seems I've to create another function for those but in a different class.
+                await GetAttachmentTodayAsync(Email);
+            }
+        }
+
+        public static async Task GetAttachmentTodayAsync(string _Email)
         {
             var ImportMainFolder = @"D:\Import\"; //Path to import folder. 
 
@@ -80,7 +104,7 @@ namespace DEA
                  var FirstSubFolderIDs = await graphClient.Me.MailFolders["Inbox"].ChildFolders */
 
                 // First level of subfolders under the inbox.
-                var FirstSubFolderIDs = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"].ChildFolders
+                var FirstSubFolderIDs = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"].ChildFolders
                     .Request()
                     .Select(fid => new
                     {
@@ -93,8 +117,9 @@ namespace DEA
                 {
                     if(FirstSubFolderID.Id != null)
                     {
+                        Console.WriteLine("First level folder: {0}", FirstSubFolderID.DisplayName);
                         // Second level of subfolders under the inbox.
-                        var SecondSubFolderIDs = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
+                        var SecondSubFolderIDs = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                             .ChildFolders[$"{FirstSubFolderID.Id}"]
                             .ChildFolders
                             .Request()
@@ -109,8 +134,9 @@ namespace DEA
                         {
                             if(SecondSubFolderID.Id != null)
                             {
+                                Console.WriteLine("Second level folder: {0}", SecondSubFolderID.DisplayName);
                                 // Third level of subfolders under the inbox.
-                                var ThirdSubFolderIDs = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
+                                var ThirdSubFolderIDs = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                     .ChildFolders[$"{FirstSubFolderID.Id}"]
                                     .ChildFolders[$"{SecondSubFolderID.Id}"]
                                     .ChildFolders
@@ -124,10 +150,11 @@ namespace DEA
 
                                 foreach (var ThirdSubFolderID in ThirdSubFolderIDs)
                                 {
-                                    if(ThirdSubFolderID.DisplayName == "New")
-                                    {
+                                    Console.WriteLine("Third level folder: {0}", ThirdSubFolderID.DisplayName);
+                                    if (ThirdSubFolderID.DisplayName == "Processing")
+                                    {                                        
                                         // Looping through the emails in the subfolder "New".
-                                        var GetMessageAttachments = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
+                                        var GetMessageAttachments = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                             .ChildFolders[$"{FirstSubFolderID.Id}"]
                                             .ChildFolders[$"{SecondSubFolderID.Id}"]
                                             .ChildFolders[$"{ThirdSubFolderID.Id}"]
@@ -210,13 +237,13 @@ namespace DEA
                                                             // Search option sets the $filter query to only get the folder named downloaded.
                                                             var FolderSearchOption = new List<QueryOption>
                                                         {
-                                                            new QueryOption ("filter", $"displayName eq %27Downloaded%27")
+                                                            new QueryOption ("filter", $"displayName eq %27Exported%27")
                                                         };
 
                                                             try
                                                             {
                                                                 // Loop through and selects only the downloaded folder.
-                                                                var DestinationDetails = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
+                                                                var DestinationDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                                                     .ChildFolders[$"{FirstSubFolderID.Id}"]
                                                                     .ChildFolders[$"{SecondSubFolderID.Id}"]
                                                                     .ChildFolders
@@ -225,13 +252,13 @@ namespace DEA
 
                                                                 foreach (var Destination in DestinationDetails)
                                                                 {
-                                                                    if (Destination.DisplayName == "Downloaded") // Just a backup check of the folder name.
+                                                                    if (Destination.DisplayName == "Exported") // Just a backup check of the folder name.
                                                                     {
                                                                         var MessageID = Message.Id;
                                                                         var MoveDestinationID = Destination.Id;
 
                                                                         // Moves the mail to downloaded folder.
-                                                                        if (await MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, ThirdSubFolderID.Id, MessageID, MoveDestinationID))
+                                                                        if (await MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, ThirdSubFolderID.Id, MessageID, MoveDestinationID, _Email))
                                                                         {
                                                                             Console.WriteLine("Email Moved ....");
                                                                         }
@@ -262,7 +289,7 @@ namespace DEA
                                                         };
 
                                                         //Loop thorugh to Select only error folder from the subfolders.
-                                                        var ErroFolderDetails = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
+                                                        var ErroFolderDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                                             .ChildFolders[$"{FirstSubFolderID.Id}"]
                                                             .ChildFolders[$"{SecondSubFolderID.Id}"]
                                                             .ChildFolders
@@ -278,7 +305,7 @@ namespace DEA
                                                                 var ErrorFolderId = ErrorFolder.Id;
 
                                                                 // Email is beeing forwarded.
-                                                                var ForwardDone = await ForwardEmtpyEmail(FirstSubFolderID.Id, SecondSubFolderID.Id, ErrorFolderId, MessageID2);
+                                                                var ForwardDone = await ForwardEmtpyEmail(FirstSubFolderID.Id, SecondSubFolderID.Id, ErrorFolderId, MessageID2, _Email);
                                                                 
                                                                 // After forwarding checks if the action returned true.
                                                                 // Item2 is the bool value returned.
@@ -293,7 +320,7 @@ namespace DEA
                                                                 }
 
                                                                 // Moves the empty emails to error folder once forwarding is done.
-                                                                if (await MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, ThirdSubFolderID.Id, MessageID2, ErrorFolderId))
+                                                                if (await MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, ThirdSubFolderID.Id, MessageID2, ErrorFolderId, _Email))
                                                                 {
                                                                     Console.WriteLine($"Mail Moved to {ErrorFolder.DisplayName} Folder ....\n");                                                                  
                                                                 }
@@ -404,12 +431,12 @@ namespace DEA
         }
 
         // Forwards emails with out any attachment to the sender.
-        private static async Task<(string?,bool)> ForwardEmtpyEmail(string FolderId1, string FolderId2, string ErrFolderId, string MsgId2)
+        private static async Task<(string?,bool)> ForwardEmtpyEmail(string FolderId1, string FolderId2, string ErrFolderId, string MsgId2, string _Email)
         {
             try
             {
                 // Get ths the emails details like subject and from email.
-                var MsgDetails = await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
+                var MsgDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                         .ChildFolders[$"{FolderId1}"]
                         .ChildFolders[$"{FolderId2}"]
                         .ChildFolders[$"{ErrFolderId}"]
@@ -441,7 +468,7 @@ namespace DEA
                 };
 
                 // Forwarding the non attachment email using .forward().
-                await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
+                await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                     .ChildFolders[$"{FolderId1}"]
                     .ChildFolders[$"{FolderId2}"]
                     .ChildFolders[$"{ErrFolderId}"]
@@ -459,12 +486,12 @@ namespace DEA
         }
 
         //Moves the email to Downloded folder.
-        private static async Task<bool> MoveEmails(string FirstFolderId, string SecondFolderId, string ThirdFolderId, string MsgId, string DestiId)
+        private static async Task<bool> MoveEmails(string FirstFolderId, string SecondFolderId, string ThirdFolderId, string MsgId, string DestiId, string _Email)
         {
             try
             {
                 //Graph api call to move the email message.
-                await graphClient.Users["test@digitalcapture.no"].MailFolders["Inbox"]
+                await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                     .ChildFolders[$"{FirstFolderId}"]
                     .ChildFolders[$"{SecondFolderId}"]
                     .ChildFolders[$"{ThirdFolderId}"]
