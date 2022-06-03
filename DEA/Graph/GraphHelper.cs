@@ -1,6 +1,8 @@
 ﻿using Microsoft.Graph;
 using Microsoft.Identity.Client;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
+using DEA2Levels;
 
 namespace DEA
 {
@@ -57,7 +59,8 @@ namespace DEA
                 Console.WriteLine("Scope provided is not supported");
             }
 
-            return AuthToken.AccessToken;
+            
+            return AuthToken!.AccessToken;
 
         }
 
@@ -67,13 +70,13 @@ namespace DEA
 
             string[] EmailsList =
             {
-                "accounting@efakturamottak.no"
-                /*"accounting02@efakturamottak.no",
+                "accounting@efakturamottak.no",
+                "accounting02@efakturamottak.no",
                 "accounting03@efakturamottak.no",
                 "accounting04@efakturamottak.no",
                 "accounting05@efakturamottak.no",
                 "atc@efakturamottak.no",
-                "atc02@efakturamottak.no"*/
+                "atc02@efakturamottak.no"
             };
 
             EmailCheckList.AddRange(EmailsList);
@@ -81,7 +84,26 @@ namespace DEA
             foreach (string Email in EmailCheckList)
             {
                 //TODO: 1. Accounting emails folder structer ends at level 2 subfolders. Seems I've to create another function for those but in a different class.
-                await GetAttachmentTodayAsync(Email);
+
+                try
+                {
+                    Regex EmailRegEx = new Regex(@"^accounting+(?=[0-9]{0,3}@[a-z]+[\.][a-z]{2,3})");
+                    if (EmailRegEx.IsMatch(Email))
+                    {
+                        Console.WriteLine("Accessing email {0}", Email);
+                        await GraphHelper2Levels.GetEmailsAttacmentsAccount(graphClient!, Email);
+                        Console.WriteLine(Environment.NewLine);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Executing await GetAttachmentTodayAsync(Email) for {0}", Email);
+                        //await GetAttachmentTodayAsync(Email);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception thrown: {0}", ex.Message);
+                }
             }
         }
 
@@ -104,7 +126,7 @@ namespace DEA
                  var FirstSubFolderIDs = await graphClient.Me.MailFolders["Inbox"].ChildFolders */
 
                 // First level of subfolders under the inbox.
-                var FirstSubFolderIDs = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"].ChildFolders
+                var FirstSubFolderIDs = await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"].ChildFolders
                     .Request()
                     .Select(fid => new
                     {
@@ -366,7 +388,7 @@ namespace DEA
             // Get current execution path.
             string? PathRootFolder = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             string DownloadFolderName = "Download";
-            string PathDownloadFolder = Path.Combine(PathRootFolder, DownloadFolderName);
+            string PathDownloadFolder = Path.Combine(PathRootFolder!, DownloadFolderName);
 
             // Check if download folder exists. If not creates the fodler.
             if (!System.IO.Directory.Exists(PathDownloadFolder))
@@ -436,7 +458,7 @@ namespace DEA
             try
             {
                 // Get ths the emails details like subject and from email.
-                var MsgDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                var MsgDetails = await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"]
                         .ChildFolders[$"{FolderId1}"]
                         .ChildFolders[$"{FolderId2}"]
                         .ChildFolders[$"{ErrFolderId}"]
@@ -491,7 +513,7 @@ namespace DEA
             try
             {
                 //Graph api call to move the email message.
-                await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"]
                     .ChildFolders[$"{FirstFolderId}"]
                     .ChildFolders[$"{SecondFolderId}"]
                     .ChildFolders[$"{ThirdFolderId}"]
