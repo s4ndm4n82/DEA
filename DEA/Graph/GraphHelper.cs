@@ -114,7 +114,7 @@ namespace DEA
             var DateToDay = DateTime.Now.ToString("dd.MM.yyyy");
 
             // TODO: 1. Enable the bwlo two queries before server testing.
-            var SearchOption = new List<QueryOption>
+            var SearchOptions = new List<QueryOption>
             {
                 //new QueryOption("search", $"%22hasAttachments:true received:{DateToDay}%22")
                 //new QueryOption("search", $"%22hasAttachments:true%22") //remove this.
@@ -126,7 +126,7 @@ namespace DEA
                  var FirstSubFolderIDs = await graphClient.Me.MailFolders["Inbox"].ChildFolders */
 
                 // First level of subfolders under the inbox.
-                var FirstSubFolderIDs = await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"].ChildFolders
+                var FirstSubFolderIDs = await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"].ChildFolders                    
                     .Request()
                     .Select(fid => new
                     {
@@ -436,7 +436,7 @@ namespace DEA
         }
 
         // Move the folder to main import folder on the loca machine.
-        private static bool MoveFolder(string SourceFolderPath, string DestiFolderPath)
+        public static bool MoveFolder(string SourceFolderPath, string DestiFolderPath)
         {
             try
             {  
@@ -453,31 +453,78 @@ namespace DEA
         }
 
         // Forwards emails with out any attachment to the sender.
-        private static async Task<(string?,bool)> ForwardEmtpyEmail(string FolderId1, string FolderId2, string ErrFolderId, string MsgId2, string _Email)
+        public static async Task<(string?,bool)> ForwardEmtpyEmail(string FolderId1, string FolderId2, string ErrFolderId, string MsgId2, string _Email)
         {
             try
             {
-                // Get ths the emails details like subject and from email.
-                var MsgDetails = await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"]
+                if (!string.IsNullOrEmpty(FolderId2))
+                {
+                    // Get ths the emails details like subject and from email.
+                    var MsgDetails = await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"]
+                            .ChildFolders[$"{FolderId1}"]
+                            .ChildFolders[$"{FolderId2}"]
+                            .ChildFolders[$"{ErrFolderId}"]
+                            .Messages[$"{MsgId2}"]
+                            .Request()
+                            .Select(em => new
+                            {
+                                em.Subject,
+                                em.From
+                            })
+                            .GetAsync();
+
+                    // Variables to be used with graph forward.
+                    var FromName = MsgDetails.From.EmailAddress.Name;
+                    var FromEmail = MsgDetails.From.EmailAddress.Address;
+                    var MailComment = "Hi,<br /> This below email doesn't contain any attachment."; // Can be change with html.
+
+                    // Recipient setup for the mail header.
+                    var toRecipients = new List<Recipient>()
+                    {
+                        new Recipient
+                        {
+                            EmailAddress = new EmailAddress
+                            {
+                                Name = FromName,
+                                Address = FromEmail
+                            }
+                        }
+                    };
+
+                    // Forwarding the non attachment email using .forward().
+                    await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                         .ChildFolders[$"{FolderId1}"]
                         .ChildFolders[$"{FolderId2}"]
                         .ChildFolders[$"{ErrFolderId}"]
                         .Messages[$"{MsgId2}"]
+                        .Forward(toRecipients, null, MailComment)
                         .Request()
-                        .Select(em => new
-                        {
-                            em.Subject,
-                            em.From
-                        })
-                        .GetAsync();
+                        .PostAsync();
 
-                // Variables to be used with graph forward.
-                var FromName = MsgDetails.From.EmailAddress.Name;
-                var FromEmail = MsgDetails.From.EmailAddress.Address;
-                var MailComment = "Hi,<br /> This below email doesn't contain any attachment."; // Can be change with html.
+                    return (FromEmail, true);
+                }
+                else
+                {
+                    // Get ths the emails details like subject and from email.
+                    var MsgDetails = await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"]
+                            .ChildFolders[$"{FolderId1}"]
+                            .ChildFolders[$"{ErrFolderId}"]
+                            .Messages[$"{MsgId2}"]
+                            .Request()
+                            .Select(em => new
+                            {
+                                em.Subject,
+                                em.From
+                            })
+                            .GetAsync();
 
-                // Recipient setup for the mail header.
-                var toRecipients = new List<Recipient>()
+                    // Variables to be used with graph forward.
+                    var FromName = MsgDetails.From.EmailAddress.Name;
+                    var FromEmail = MsgDetails.From.EmailAddress.Address;
+                    var MailComment = "Hi,<br /> This below email doesn't contain any attachment."; // Can be change with html.
+
+                    // Recipient setup for the mail header.
+                    var toRecipients = new List<Recipient>()
                 {
                     new Recipient
                     {
@@ -489,17 +536,18 @@ namespace DEA
                     }
                 };
 
-                // Forwarding the non attachment email using .forward().
-                await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
-                    .ChildFolders[$"{FolderId1}"]
-                    .ChildFolders[$"{FolderId2}"]
-                    .ChildFolders[$"{ErrFolderId}"]
-                    .Messages[$"{MsgId2}"]
-                    .Forward(toRecipients, null, MailComment)
-                    .Request()
-                    .PostAsync();
+                    // Forwarding the non attachment email using .forward().
+                    await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                        .ChildFolders[$"{FolderId1}"]
+                        .ChildFolders[$"{ErrFolderId}"]
+                        .Messages[$"{MsgId2}"]
+                        .Forward(toRecipients, null, MailComment)
+                        .Request()
+                        .PostAsync();
+
+                    return (FromEmail, true);
+                }
                 
-                return (FromEmail, true);
             }
             catch (Exception ex)
             {
@@ -508,20 +556,33 @@ namespace DEA
         }
 
         //Moves the email to Downloded folder.
-        private static async Task<bool> MoveEmails(string FirstFolderId, string SecondFolderId, string ThirdFolderId, string MsgId, string DestiId, string _Email)
+        public static async Task<bool> MoveEmails(string FirstFolderId, string SecondFolderId, string ThirdFolderId, string MsgId, string DestiId, string _Email)
         {
             try
             {
-                //Graph api call to move the email message.
-                await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"]
-                    .ChildFolders[$"{FirstFolderId}"]
-                    .ChildFolders[$"{SecondFolderId}"]
-                    .ChildFolders[$"{ThirdFolderId}"]
-                    .Messages[$"{MsgId}"]
-                    .Move(DestiId)
-                    .Request()
-                    .PostAsync();
-
+                if (!string.IsNullOrEmpty(ThirdFolderId))
+                {
+                    //Graph api call to move the email message.
+                    await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"]
+                        .ChildFolders[$"{FirstFolderId}"]
+                        .ChildFolders[$"{SecondFolderId}"]
+                        .ChildFolders[$"{ThirdFolderId}"]
+                        .Messages[$"{MsgId}"]
+                        .Move(DestiId)
+                        .Request()
+                        .PostAsync();
+                }
+                else
+                {
+                    //Graph api call to move the email message.
+                    await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"]
+                        .ChildFolders[$"{FirstFolderId}"]
+                        .ChildFolders[$"{SecondFolderId}"]
+                        .Messages[$"{MsgId}"]
+                        .Move(DestiId)
+                        .Request()
+                        .PostAsync();
+                }
                 return true;
             }
             catch (Exception ex)
