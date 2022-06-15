@@ -71,12 +71,12 @@ namespace DEA
             string[] EmailsList =
             {
                 "accounting@efakturamottak.no",
-                "accounting02@efakturamottak.no",
+                /*"accounting02@efakturamottak.no",
                 "accounting03@efakturamottak.no",
                 "accounting04@efakturamottak.no",
                 "accounting05@efakturamottak.no",
                 "atc@efakturamottak.no",
-                "atc02@efakturamottak.no"
+                "atc02@efakturamottak.no"*/
             };
 
             EmailCheckList.AddRange(EmailsList);
@@ -417,20 +417,20 @@ namespace DEA
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error getting events: {ex.Message}");
+                    Console.WriteLine($"Exceptio at download folder creation: {ex.Message}");
                 }
             }
 
             try
             {
-                // Fulle path for the attachment to be downloaded with the attachment name
+                // Full path for the attachment to be downloaded with the attachment name
                 var PathFullDownloadFile = Path.Combine(DownloadFolderPath, DownloadFileName);
                 System.IO.File.WriteAllBytes(PathFullDownloadFile, DownloadFileData);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting events: {ex.Message}");
+                Console.WriteLine($"Exception at download path: {ex.Message}");
                 return false;
             }
         }
