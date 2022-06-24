@@ -1,6 +1,7 @@
 ﻿using Microsoft.Graph;
 using System.Diagnostics.CodeAnalysis;
 using DEA;
+using System.Linq;
 
 namespace DEA2Levels
 {
@@ -94,7 +95,7 @@ namespace DEA2Levels
                                         gma.HasAttachments,
                                         gma.Attachments
                                     })
-                                    .Top(10) //Increase this to 40                                    
+                                    .Top(4) //Increase this to 40                                    
                                     .GetAsync();
 
                                 // Counts the with attachments.
@@ -102,7 +103,6 @@ namespace DEA2Levels
                                 Console.WriteLine("Message Count: {0}", MessageCount);
                                 if (MessageCount != 0)
                                 {
-                                    //TODO: 1. Figure out how to create a 1 connection then use that for all.
                                     // Looping through the messages.
                                     foreach (var Message in GetMessageAttachments)
                                     {
@@ -114,7 +114,7 @@ namespace DEA2Levels
                                         // If the file attached variable is true then the download will start.
                                         if (HasFileAttched == true)
                                         {
-                                            Console.WriteLine("{0} Email Subject: {1}", _Email, Message.Subject);
+                                            //Console.WriteLine("{0} Email Subject: {1}", _Email, Message.Subject);
                                             
                                             // Counting the aount of messages with attachments. To loop through below.
                                             var AttachmentCount = Message.Attachments.Count;
@@ -130,17 +130,72 @@ namespace DEA2Levels
                                             // FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
                                             // This has to be called here. Don't put it within the for loop or it will start calling this
                                             // each time and make folder for each file.
-                                            var PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders(), GraphHelper.FolderNameRnd(10));
+                                            //var PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders(), GraphHelper.FolderNameRnd(10));
+                                            //Console.WriteLine("Path Download Folder: {0}", PathFullDownloadFolder);
+                                            //Console.WriteLine("Path Destination Filder: {0}", DestinationFolderPath);
+
+                                            //TODO: Found how to bypass the issue of empty folder. Refine the solution below. Below IF checks wether theres any
+                                            //name element containing the accepted extention if it's there then rest of the code withh run if not it will be skipped.
+                                            string[] EndExtention = { ".pdf" };
+
+                                            string PathFullDownloadFolder = string.Empty;
+
+                                            for (int i = 0; i < EndExtention.Length; ++i)
+                                            {
+                                                var TestExt = Message.Attachments.Where(x => x.Name.ToLower().EndsWith(EndExtention[i]));
+
+                                                if (TestExt.Any(y => y.Name.ToLower().Contains(EndExtention[i])))
+                                                {
+                                                    Console.WriteLine("{0} Email Subject: {1}", _Email, Message.Subject);
+                                                    PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders(), GraphHelper.FolderNameRnd(10));
+                                                    Console.WriteLine("Path Download Folder in side if: {0}", PathFullDownloadFolder);                                                    
+                                                    Console.WriteLine("Esctention: {0}", EndExtention);
+                                                    foreach (var Attachment in TestExt)
+                                                    {
+                                                        Console.WriteLine("Attachment Name: {0}", Attachment.Name);
+
+                                                        var AttachedItem = (FileAttachment)Attachment;// Attachment properties.
+                                                        string AttachedItemName = AttachedItem.Name;// Attachment name.
+                                                        byte[] AttachedItemBytes = AttachedItem.ContentBytes;// Attachment bytes to be saved on to the disk.
+                                                       //PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders(), GraphHelper.FolderNameRnd(10));
+                                                       
+                                                        // Download the files and saves them on to the drive.
+                                                        GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, AttachedItemName, AttachedItemBytes);
+                                                    }
+                                                    Console.WriteLine(Environment.NewLine);
+                                                    string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder);
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine(Environment.NewLine);
+                                                    Console.WriteLine("No maching attachment");
+                                                }
+                                                
+                                                /*foreach (var Attachment in TestExt!)
+                                                {
+                                                    var AttachedItem = (FileAttachment)Attachment;// Attachment properties.
+                                                    string AttachedItemName = AttachedItem.Name;// Attachment name.
+                                                    byte[] AttachedItemBytes = AttachedItem.ContentBytes;// Attachment bytes to be saved on to the disk.
+                                                    //PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders(), GraphHelper.FolderNameRnd(10));
+                                                    // Download the files and saves them on to the drive.
+                                                    GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, AttachedItemName, AttachedItemBytes);
+                                                }*/
+
+                                                //string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder);
+                                            }
+                                            //var TestExt = Message.Attachments.Where(x => x.Name.ToLower().EndsWith(".pdf") || x.Name.ToLower().EndsWith(".jpg")); 
+                                            //var TestExt = Message.Attachments.Where(x => x.Name.ToLower().EndsWith(".pdf"));
+                                            //Console.WriteLine("Path Download Folder: {0}", PathFullDownloadFolder);
 
                                             // Loops through the attachments with in a single email.
-                                            for (int i = 0; i < AttachmentCount; ++i)
+                                            /*for (int i = 0; i < AttachmentCount; ++i)
                                             {
                                                 // Get the message according to index.
                                                 var Attachment = Message.Attachments[i];
 
                                                 // Get the attachment extention only to check if it accepted or not.
                                                 var AttachmentExtention = Path.GetExtension(Attachment.Name).Replace(".","").ToLower();
-
+                                                
                                                 if (AttachmentExtention == "pdf")// Check the attachment extention.
                                                 {
                                                     var AttachedItem = (FileAttachment)Attachment;// Attachment properties.
@@ -149,21 +204,17 @@ namespace DEA2Levels
 
                                                     // Download the files and saves them on to the drive.
                                                     GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, AttachedItemName, AttachedItemBytes);
-
-                                                    continue;
                                                 }
-
-                                                continue;
-                                            }
+                                            }*/
                                             // Checking the folder and files with in it exsists.
-                                            string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders()); // Use the main path not the entire download path
-                                            string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder);
+                                            //string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders()); // Use the main path not the entire download path
+                                            //string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder);
 
                                             // Checking if the folders are empty or not.
-                                            if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0)
+                                            /*if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0)
                                             {
                                                 // Moves the downloaded files to destination folder. This would create the folder path if it's missing.
-                                                /*if (GraphHelper.MoveFolder(PathFullDownloadFolder, DestinationFolderPath))
+                                                if (GraphHelper.MoveFolder(PathFullDownloadFolder, DestinationFolderPath))
                                                 {
                                                     // Search option sets the $filter query to only get the folder named downloaded.
                                                     var FolderSearchOption = new List<QueryOption>
@@ -205,8 +256,8 @@ namespace DEA2Levels
                                                         Console.WriteLine($"Exception Thrown: {ex.Message}");
                                                     }
 
-                                                }*/
-                                            }
+                                                }
+                                            }*/
                                             Console.WriteLine("-------------------------------------------");
                                         }
                                         else
@@ -267,6 +318,7 @@ namespace DEA2Levels
                                     }
                                 }
                             }
+                            continue;
                         }
                     }
                 }
