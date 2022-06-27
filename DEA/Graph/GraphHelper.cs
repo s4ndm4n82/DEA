@@ -325,9 +325,10 @@ namespace DEA
                                                                 // Folder ID and the message ID that need to be forwarded to the client.
                                                                 var MessageID2 = Message.Id;
                                                                 var ErrorFolderId = ErrorFolder.Id;
+                                                                var AttachmentStatus = 0;
 
                                                                 // Email is beeing forwarded.
-                                                                var ForwardDone = await ForwardEmtpyEmail(FirstSubFolderID.Id, SecondSubFolderID.Id, ErrorFolderId, MessageID2, _Email);
+                                                                var ForwardDone = await ForwardEmtpyEmail(FirstSubFolderID.Id, SecondSubFolderID.Id, ErrorFolderId, MessageID2, _Email, AttachmentStatus);
                                                                 
                                                                 // After forwarding checks if the action returned true.
                                                                 // Item2 is the bool value returned.
@@ -453,7 +454,7 @@ namespace DEA
         }
 
         // Forwards emails with out any attachment to the sender.
-        public static async Task<(string?,bool)> ForwardEmtpyEmail(string FolderId1, string FolderId2, string ErrFolderId, string MsgId2, string _Email)
+        public static async Task<(string?,bool)> ForwardEmtpyEmail(string FolderId1, string FolderId2, string ErrFolderId, string MsgId2, string _Email, int AttnStatus)
         {
             try
             {
@@ -474,9 +475,18 @@ namespace DEA
                             .GetAsync();
 
                     // Variables to be used with graph forward.
-                    var FromName = MsgDetails.From.EmailAddress.Name;
-                    var FromEmail = MsgDetails.From.EmailAddress.Address;
-                    var MailComment = "Hi,<br /> This below email doesn't contain any attachment."; // Can be change with html.
+                    var FromName    = MsgDetails.From.EmailAddress.Name;
+                    var FromEmail   = MsgDetails.From.EmailAddress.Address;
+                    var MailComment = string.Empty;
+
+                    if (AttnStatus != 1)
+                    {
+                        MailComment = "Hi,<br /> Below email doesn't contain any attachment."; // Can be change with html.
+                    }
+                    else
+                    {
+                        MailComment = "Hi,<br /> Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
+                    }
 
                     // Recipient setup for the mail header.
                     var toRecipients = new List<Recipient>()
