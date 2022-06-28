@@ -83,7 +83,7 @@ namespace DEA2Levels
                                     .ChildFolders[$"{SecondSubFolderID.Id}"]
                                     .Messages
                                     //.Request(SearchOption) // Uncomment this before thesting.
-                                    .Request()                                    
+                                    .Request()
                                     .Expand("attachments")
                                     .Select(gma => new
                                     {
@@ -126,10 +126,14 @@ namespace DEA2Levels
                                             // name element containing the accepted extention if it's there then rest of the code withh run if not it will be skipped.
 
                                             // Variable used to store all the accepted extentions.
-                                            string[] AcceptedExtention = { ".jpg" };
+                                            string[] AcceptedExtention = { ".pdf", ".jpg" };
 
                                             // Initilizing the download folder path variable.
                                             string PathFullDownloadFolder = string.Empty;
+
+                                            var CurrentExt = string.Empty;
+
+                                            var EmailMoveStatus = false;
 
                                             // For loop to go through all the extentions from extentions variable.
                                             for (int i = 0; i < AcceptedExtention.Length; ++i)
@@ -139,6 +143,7 @@ namespace DEA2Levels
                                                 if (AcceptedExtensionCollection.Any(y => y.Name.ToLower().Contains(AcceptedExtention[i])))
                                                 {
                                                     Console.WriteLine("{0} Email Subject: {1}", _Email, Message.Subject);
+                                                    CurrentExt = AcceptedExtention[i];
 
                                                     // FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
                                                     // This has to be called here. Don't put it within the for loop or it will start calling this
@@ -148,14 +153,35 @@ namespace DEA2Levels
                                                     
                                                     foreach (var Attachment in AcceptedExtensionCollection)
                                                     {
+                                                        //TODO: 1. Solve the error happening due to email being moved when thers 2 attachments.
                                                         Console.WriteLine("Attachment Name: {0}", Attachment.Name);
 
-                                                        var AttachedItem = (FileAttachment)Attachment;// Attachment properties.
+                                                        Console.WriteLine("Attachment ID: {0}", Attachment.Id);
+
+                                                        var TrueAttachment = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                                                                            .ChildFolders[$"{FirstSubFolderID.Id}"]
+                                                                            .ChildFolders[$"{SecondSubFolderID.Id}"]
+                                                                            .Messages[$"{Message.Id}"]
+                                                                            .Attachments[$"{Attachment.Id}"]
+                                                                            .Request()
+                                                                            .Expand("microsoft.graph.itemattachment/item")
+                                                                            .GetAsync();
+                                                        
+                                                        var TrueAttachmentProps = (FileAttachment)TrueAttachment;
+                                                        string TrueAttachmentName = TrueAttachmentProps.Name;
+                                                        byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
+
+                                                        Console.WriteLine(Environment.NewLine);
+                                                        Console.WriteLine("True Attachment Name: {0}", TrueAttachmentName);
+                                                        GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, TrueAttachmentName, TruAttachmentBytes);
+                                                        
+                                                        /*var AttachedItem = (FileAttachment)Attachment;// Attachment properties.
                                                         string AttachedItemName = AttachedItem.Name;// Attachment name.
                                                         byte[] AttachedItemBytes = AttachedItem.ContentBytes;// Attachment bytes to be saved on to the disk.
                                                        
                                                         // Download the files and saves them on to the drive.
                                                         GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, AttachedItemName, AttachedItemBytes);
+                                                        */
                                                     }
                                                     
                                                     Console.WriteLine(Environment.NewLine);
@@ -196,6 +222,7 @@ namespace DEA2Levels
                                                                         if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, MessageID, MoveDestinationID, _Email))
                                                                         {
                                                                             Console.WriteLine("Email Moved ....");
+                                                                            EmailMoveStatus = true;
                                                                         }
                                                                         else
                                                                         {
@@ -214,8 +241,13 @@ namespace DEA2Levels
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine(Environment.NewLine);
-                                                    Console.WriteLine("No maching attachment");
+                                                    if (!EmailMoveStatus)
+                                                    {
+                                                        Console.WriteLine(Environment.NewLine);
+                                                        Console.WriteLine("No maching attachment");
+                                                        Console.WriteLine("Email Move Status: {0}", EmailMoveStatus);
+                                                        Console.WriteLine(Environment.NewLine);
+                                                    }                                                    
 
                                                     // Search for the subfolder named error.
                                                     var FolderSearchOption2 = new List<QueryOption>
@@ -246,7 +278,7 @@ namespace DEA2Levels
                                                             // After forwarding checks if the action returned true.
                                                             // Item2 is the bool value returned.
                                                             // Item1 is the maile address.
-                                                            if (ForwardDone.Item2)
+                                                            /*if (ForwardDone.Item2)
                                                             {
                                                                 Console.WriteLine($"Email Forwarded to {ForwardDone.Item1}");
                                                             }
@@ -263,7 +295,7 @@ namespace DEA2Levels
                                                             else
                                                             {
                                                                 Console.WriteLine($"Mail was Not Moved to {ErrorFolder.DisplayName} Folder ....\n");
-                                                            }
+                                                            }*/
                                                         }
                                                     }
                                                 }

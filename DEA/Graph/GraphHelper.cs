@@ -481,11 +481,17 @@ namespace DEA
 
                     if (AttnStatus != 1)
                     {
-                        MailComment = "Hi,<br /> Below email doesn't contain any attachment."; // Can be change with html.
+                        MailComment = "Hi," +
+                            "<b>Please don't respond to this mail. We're testing a new system.</b>" +
+                            "You might see a few emails like this just ignore them. Sorry for the inconvenience.";
+                            //"Hi,<br /> Below email doesn't contain any attachment."; // Can be change with html.
                     }
                     else
                     {
-                        MailComment = "Hi,<br /> Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
+                        MailComment = "Hi," +
+                            "<b>Please don't respond to this mail. We're testing a new system.</b>" +
+                            "You might see a few emails like this just ignore them. Sorry for the inconvenience.";
+                            //"Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
                     }
 
                     // Recipient setup for the mail header.
@@ -531,7 +537,22 @@ namespace DEA
                     // Variables to be used with graph forward.
                     var FromName = MsgDetails.From.EmailAddress.Name;
                     var FromEmail = MsgDetails.From.EmailAddress.Address;
-                    var MailComment = "Hi,<br /> This below email doesn't contain any attachment."; // Can be change with html.
+                    var MailComment = string.Empty;
+
+                    if (AttnStatus != 1)
+                    {
+                        MailComment = "Hi," +
+                            "<b>Please don't respond to this mail. We're testing a new system.</b>" +
+                            "You might see a few emails like this just ignore them. Sorry for the inconvenience.";
+                        //"Hi,<br /> Below email doesn't contain any attachment."; // Can be change with html.
+                    }
+                    else
+                    {
+                        MailComment = "Hi," +
+                            "<b>Please don't respond to this mail. We're testing a new system.</b>" +
+                            "You might see a few emails like this just ignore them. Sorry for the inconvenience.";
+                        //"Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
+                    }
 
                     // Recipient setup for the mail header.
                     var toRecipients = new List<Recipient>()
