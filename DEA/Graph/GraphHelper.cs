@@ -481,17 +481,17 @@ namespace DEA
 
                     if (AttnStatus != 1)
                     {
-                        MailComment = "Hi," +
-                            "<b>Please don't respond to this mail. We're testing a new system.</b>" +
-                            "You might see a few emails like this just ignore them. Sorry for the inconvenience.";
-                            //"Hi,<br /> Below email doesn't contain any attachment."; // Can be change with html.
+                        MailComment = "Hi,<br />" +
+                            "<b>Please don't respond to this email. We're testing a new system.</b><br />" +
+                            "You might see a few emails like this, just ignore them. Sorry for the inconvenience.";
+                        //"Hi,<br /> Below email doesn't contain any attachment."; // Can be change with html.
                     }
                     else
                     {
-                        MailComment = "Hi," +
-                            "<b>Please don't respond to this mail. We're testing a new system.</b>" +
-                            "You might see a few emails like this just ignore them. Sorry for the inconvenience.";
-                            //"Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
+                        MailComment = "Hi,<br />" +
+                            "<b>Please don't respond to this email. We're testing a new system.</b><br />" +
+                            "You might see a few emails like this, just ignore them. Sorry for the inconvenience.";
+                        //"Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
                     }
 
                     // Recipient setup for the mail header.
@@ -541,16 +541,16 @@ namespace DEA
 
                     if (AttnStatus != 1)
                     {
-                        MailComment = "Hi," +
-                            "<b>Please don't respond to this mail. We're testing a new system.</b>" +
-                            "You might see a few emails like this just ignore them. Sorry for the inconvenience.";
+                        MailComment = "Hi,<br />" +
+                            "<b>Please don't respond to this email. We're testing a new system.</b><br />" +
+                            "You might see a few emails like this, just ignore them. Sorry for the inconvenience.";
                         //"Hi,<br /> Below email doesn't contain any attachment."; // Can be change with html.
                     }
                     else
                     {
-                        MailComment = "Hi," +
-                            "<b>Please don't respond to this mail. We're testing a new system.</b>" +
-                            "You might see a few emails like this just ignore them. Sorry for the inconvenience.";
+                        MailComment = "Hi,<br />" +
+                            "<b>Please don't respond to this email. We're testing a new system.</b><br />" +
+                            "You might see a few emails like this, just ignore them. Sorry for the inconvenience.";
                         //"Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
                     }
 

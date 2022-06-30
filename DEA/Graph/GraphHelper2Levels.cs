@@ -131,19 +131,48 @@ namespace DEA2Levels
                                             // Initilizing the download folder path variable.
                                             string PathFullDownloadFolder = string.Empty;
 
-                                            var CurrentExt = string.Empty;
-
                                             var EmailMoveStatus = false;
 
                                             // For loop to go through all the extentions from extentions variable.
                                             for (int i = 0; i < AcceptedExtention.Length; ++i)
                                             {
-                                                var AcceptedExtensionCollection = Message.Attachments.Where(x => x.Name.ToLower().EndsWith(AcceptedExtention[i]));
+                                                var AcceptedExtensionCollection = Message.Attachments.Where(x => x.Name.ToLower().EndsWith(AcceptedExtention[i]));                                               
 
                                                 if (AcceptedExtensionCollection.Any(y => y.Name.ToLower().Contains(AcceptedExtention[i])))
                                                 {
+                                                    /*try
+                                                    {
+                                                        var CheckMessage = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                                                               .ChildFolders[$"{FirstSubFolderID.Id}"]
+                                                               .ChildFolders[$"{SecondSubFolderID.Id}"]
+                                                                .Messages[$"{Message.Id}"]
+                                                                .Request()
+                                                                .Select(cma => new
+                                                                {
+                                                                    cma.Id,
+                                                                })
+                                                                .GetAsync();
+
+                                                        if (CheckMessage != null)
+                                                        {
+                                                            Console.WriteLine(Environment.NewLine);
+                                                            Console.WriteLine("Email ID Cehck: {0}", CheckMessage.Id);
+                                                            Console.WriteLine(Environment.NewLine);
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine(Environment.NewLine);
+                                                            Console.WriteLine("Email not available.");
+                                                            Console.WriteLine(Environment.NewLine);
+                                                        }
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        Console.WriteLine("Exception at message forwach: {0}", ex.Message);
+                                                    }*/
+                                                    
+
                                                     Console.WriteLine("{0} Email Subject: {1}", _Email, Message.Subject);
-                                                    CurrentExt = AcceptedExtention[i];
 
                                                     // FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
                                                     // This has to be called here. Don't put it within the for loop or it will start calling this
@@ -151,12 +180,13 @@ namespace DEA2Levels
                                                     // causes an exception error at the "DownloadFileExistTest" test due file not been available.
                                                     PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders(), GraphHelper.FolderNameRnd(10));
                                                     
+
                                                     foreach (var Attachment in AcceptedExtensionCollection)
                                                     {
                                                         //TODO: 1. Solve the error happening due to email being moved when thers 2 attachments.
                                                         Console.WriteLine("Attachment Name: {0}", Attachment.Name);
 
-                                                        Console.WriteLine("Attachment ID: {0}", Attachment.Id);
+                                                        //Console.WriteLine("Attachment ID: {0}", Attachment.Id);
 
                                                         var TrueAttachment = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                                                             .ChildFolders[$"{FirstSubFolderID.Id}"]
