@@ -66,54 +66,53 @@ namespace DEA
 
         public static async Task InitializGetAttachment()
         {
+            // Email list.
+            // Need to make this read from text file.
             List<string> EmailCheckList = new List<string>();
 
             string[] EmailsList =
             {
                 "accounting@efakturamottak.no",
-                /*"accounting02@efakturamottak.no",
+                "accounting02@efakturamottak.no",
                 "accounting03@efakturamottak.no",
                 "accounting04@efakturamottak.no",
                 "accounting05@efakturamottak.no",
                 "atc@efakturamottak.no",
-                "atc02@efakturamottak.no"*/
+                "atc02@efakturamottak.no"
             };
 
-            EmailCheckList.AddRange(EmailsList);
+            EmailCheckList.AddRange(EmailsList); // Adds the above range of data tol EmailCheckList list variable.
 
             foreach (string Email in EmailCheckList)
             {
-                //TODO: 1. Accounting emails folder structer ends at level 2 subfolders. Seems I've to create another function for those but in a different class.
-
+                // Check emails and match them to execute the correct function.
                 try
                 {
+                    // Regex should match any email address that look like accounting2@efakturamottak.no.
                     Regex EmailRegEx = new Regex(@"^accounting+(?=[0-9]{0,3}@[a-z]+[\.][a-z]{2,3})");
                     if (EmailRegEx.IsMatch(Email))
                     {
-                        Console.WriteLine("Accessing email {0}", Email);
                         await GraphHelper2Levels.GetEmailsAttacmentsAccount(graphClient!, Email);
-                        Console.WriteLine(Environment.NewLine);
                     }
                     else
                     {
-                        Console.WriteLine("Executing await GetAttachmentTodayAsync(Email) for {0}", Email);
-                        //await GetAttachmentTodayAsync(Email);
+                        await GetAttachmentTodayAsync(Email);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Exception thrown: {0}", ex.Message);
+                    Console.WriteLine("Exception at email check: {0}", ex.Message);
                 }
             }
         }
 
-        public static async Task GetAttachmentTodayAsync(string _Email)
+        public static async Task GetAttachmentTodayAsync(string _Email) // Looks for 3 levels of folders.
         {
             var ImportMainFolder = @"D:\Import\"; //Path to import folder. 
 
             var DateToDay = DateTime.Now.ToString("dd.MM.yyyy");
 
-            // TODO: 1. Enable the bwlo two queries before server testing.
+            // TODO: 1. Enable one of the queries before server testing.
             var SearchOptions = new List<QueryOption>
             {
                 //new QueryOption("search", $"%22hasAttachments:true received:{DateToDay}%22")
@@ -139,7 +138,6 @@ namespace DEA
                 {
                     if(FirstSubFolderID.Id != null)
                     {
-                        Console.WriteLine("First level folder: {0}", FirstSubFolderID.DisplayName);
                         // Second level of subfolders under the inbox.
                         var SecondSubFolderIDs = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                             .ChildFolders[$"{FirstSubFolderID.Id}"]
@@ -156,7 +154,6 @@ namespace DEA
                         {
                             if(SecondSubFolderID.Id != null)
                             {
-                                Console.WriteLine("Second level folder: {0}", SecondSubFolderID.DisplayName);
                                 // Third level of subfolders under the inbox.
                                 var ThirdSubFolderIDs = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                     .ChildFolders[$"{FirstSubFolderID.Id}"]
@@ -172,10 +169,10 @@ namespace DEA
 
                                 foreach (var ThirdSubFolderID in ThirdSubFolderIDs)
                                 {
-                                    Console.WriteLine("Third level folder: {0}", ThirdSubFolderID.DisplayName);
+                                    // Getting emails from the last child folder.
                                     if (ThirdSubFolderID.DisplayName == "Processing")
                                     {                                        
-                                        // Looping through the emails in the subfolder "New".
+                                        // Looping through the emails in the subfolder "Processing".
                                         var GetMessageAttachments = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                             .ChildFolders[$"{FirstSubFolderID.Id}"]
                                             .ChildFolders[$"{SecondSubFolderID.Id}"]
@@ -191,6 +188,7 @@ namespace DEA
                                                 gma.HasAttachments,                                               
                                                 gma.Attachments
                                             })
+                                            .Top(4) // Increase this to 40
                                             .GetAsync();
 
                                         // Gets the message count.
@@ -198,13 +196,9 @@ namespace DEA
 
                                         if (MessageCount != 0)
                                         {
-                                            Console.WriteLine("Messages");
-
                                             // Loops through the emails.
                                             foreach (var Message in GetMessageAttachments)
-                                            {   
-                                                Console.WriteLine("Subjec: {0}", Message.Subject);
-
+                                            {
                                                 // Check if the mail has an attachment or not.
                                                 var HasFileAttached = Message.HasAttachments;
                                                 
@@ -214,88 +208,200 @@ namespace DEA
                                                     // Counting the aount of messages with attachments. To loop through below.
                                                     var AttachmentCount = Message.Attachments.Count;
 
-                                                    // Assigning display names.
+                                                    // Assigning display names.                                            
                                                     var FirstFolderName = FirstSubFolderID.DisplayName;
                                                     var SecondFolderName = SecondSubFolderID.DisplayName;
 
                                                     // Creating the destnation folders.
-                                                    string[] MakeDestinationFolderPath = { ImportMainFolder, FirstFolderName, SecondFolderName };
+                                                    string[] MakeDestinationFolderPath = { ImportMainFolder, _Email, FirstFolderName, SecondFolderName };
                                                     var DestinationFolderPath = Path.Combine(MakeDestinationFolderPath);
 
-                                                    // FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
-                                                    // This has to be called here. Don't put it within the for loop or it will start calling this
-                                                    // each time and make folder for each file.
-                                                    var PathFullDownloadFolder = Path.Combine(CheckFolders(), FolderNameRnd(10));
+                                                    // Variable used to store all the accepted extentions.
+                                                    string[] AcceptedExtention = { ".pdf", ".jpg" }; // Make this read from text file.
 
-                                                    // Loops through the attachments with in a single email.
-                                                    for (int i = 0; i < AttachmentCount; ++i)
+                                                    // Initilizing the download folder path variable.
+                                                    string PathFullDownloadFolder = string.Empty;
+
+                                                    // Used to set the status of if the email is moved or not.
+                                                    // If moved this will be true. If not the code for forwarding will be executed.
+                                                    var EmailMoveStatus = false;
+
+                                                    // For loop to go through all the extentions from extentions variable.
+                                                    for (int i = 0; i < AcceptedExtention.Length; ++i)
                                                     {
-                                                        // Get the message according to index.
-                                                        var Attachment = Message.Attachments[i];
+                                                        // Select all the items from attachments variable that contains matching extentions.
+                                                        var AcceptedExtensionCollection = Message.Attachments.Where(x => x.Name.ToLower().EndsWith(AcceptedExtention[i]));
 
-                                                        // Get the attachment extention only to check if it accepted or not.
-                                                        var AttachmentExtention = Path.GetExtension(Attachment.Name).Replace(".", "").ToLower();
-
-                                                        if (AttachmentExtention == "pdf")// Check the attachment extention.
+                                                        // Checks the collection empty or not.
+                                                        if (AcceptedExtensionCollection.Any(y => y.Name.ToLower().Contains(AcceptedExtention[i])))
                                                         {
-                                                            var AttachedItem = (FileAttachment)Attachment;// Attachment properties.
-                                                            string AttachedItemName = AttachedItem.Name;// Attachment name.
-                                                            byte[] AttachedItemBytes = AttachedItem.ContentBytes;// Attachment bytes to be saved on to the disk.
+                                                            Console.WriteLine("{0} Email Subject: {1}", _Email, Message.Subject);
 
-                                                            // Download the files and saves them on to the drive.
-                                                            DownloadAttachedFiles(PathFullDownloadFolder, AttachedItemName, AttachedItemBytes);
-                                                        }
-                                                    }
-                                                    // Checking the folder and files with in it exsists.
-                                                    string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(CheckFolders()); // Use the main path not the entire download path
-                                                    string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder);
+                                                            // FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
+                                                            // This has to be called here. Don't put it within the for loop or it will start calling this
+                                                            // each time and make folder for each file. Also calling this out side of the extentions FOR loop.
+                                                            // causes an exception error at the "DownloadFileExistTest" test due file not been available.
+                                                            PathFullDownloadFolder = Path.Combine(CheckFolders(), FolderNameRnd(10));
 
-                                                    // Checking if the folders are empty or not.
-                                                    if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0)
-                                                    {
-                                                        // Moves the downloaded files to destination folder. This would create the folder path if it's missing.
-                                                        if (MoveFolder(PathFullDownloadFolder, DestinationFolderPath))
-                                                        {
-                                                            // Search option sets the $filter query to only get the folder named downloaded.
-                                                            var FolderSearchOption = new List<QueryOption>
-                                                        {
-                                                            new QueryOption ("filter", $"displayName eq %27Exported%27")
-                                                        };
 
-                                                            try
+                                                            foreach (var Attachment in AcceptedExtensionCollection)
                                                             {
-                                                                // Loop through and selects only the downloaded folder.
-                                                                var DestinationDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
-                                                                    .ChildFolders[$"{FirstSubFolderID.Id}"]
-                                                                    .ChildFolders[$"{SecondSubFolderID.Id}"]
-                                                                    .ChildFolders
-                                                                    .Request(FolderSearchOption)
-                                                                    .GetAsync();
+                                                                // Switch to execute the atachment download.
+                                                                // If this is false that means the message has been moved.
+                                                                bool MsgSwitch = true;
 
-                                                                foreach (var Destination in DestinationDetails)
+                                                                try
                                                                 {
-                                                                    if (Destination.DisplayName == "Exported") // Just a backup check of the folder name.
+                                                                    // Check if the selected email message exsits or not.
+                                                                    // If not exception will be thrown which will be captured in the catch area and it sets the MsgSwitch to false.
+                                                                    // Which will make the next if skip the attachment download. This is done to avoide the error that occurs from
+                                                                    // having signaturs as attachments.
+                                                                    var CheckMsgId = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                                                                                .ChildFolders[$"{FirstSubFolderID.Id}"]
+                                                                                .ChildFolders[$"{SecondSubFolderID.Id}"]
+                                                                                .ChildFolders[$"{ThirdSubFolderID.Id}"]
+                                                                                .Messages[$"{Message.Id}"]
+                                                                                .Request()
+                                                                                .GetAsync();
+                                                                }
+                                                                catch (ServiceException ex)
+                                                                {
+                                                                    if (ex.Error.Code == "ErrorItemNotFound")
                                                                     {
-                                                                        var MessageID = Message.Id;
-                                                                        var MoveDestinationID = Destination.Id;
+                                                                        MsgSwitch = false;
+                                                                    }
+                                                                }
 
-                                                                        // Moves the mail to downloaded folder.
-                                                                        if (await MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, ThirdSubFolderID.Id, MessageID, MoveDestinationID, _Email))
+                                                                if (MsgSwitch)
+                                                                {
+                                                                    // Should mark and download the itemattacment which is the correct attachment.
+                                                                    var TrueAttachment = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                                                                                    .ChildFolders[$"{FirstSubFolderID.Id}"]
+                                                                                    .ChildFolders[$"{SecondSubFolderID.Id}"]
+                                                                                    .ChildFolders[$"{ThirdSubFolderID.Id}"]
+                                                                                    .Messages[$"{Message.Id}"]
+                                                                                    .Attachments[$"{Attachment.Id}"]
+                                                                                    .Request()
+                                                                                    .Expand("microsoft.graph.itemattachment/item")
+                                                                                    .GetAsync();
+
+                                                                    // Details of the attachment.
+                                                                    var TrueAttachmentProps = (FileAttachment)TrueAttachment;
+                                                                    string TrueAttachmentName = TrueAttachmentProps.Name;
+                                                                    byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
+                                                                    
+                                                                    // Saves the file to the local hard disk.
+                                                                    DownloadAttachedFiles(PathFullDownloadFolder, TrueAttachmentName, TruAttachmentBytes);
+
+                                                                    // Directory and file existence check. If not exists it will not return anything.
+                                                                    string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders()); // Use the main path not the entire download path
+                                                                    string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder); // This causs an erro when the file is not there.
+
+                                                                    if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0)
+                                                                    {
+                                                                        // Moves the downloaded files to destination folder. This would create the folder path if it's missing.
+                                                                        if (MoveFolder(PathFullDownloadFolder, DestinationFolderPath))
                                                                         {
-                                                                            Console.WriteLine("Email Moved ....");
+                                                                            // Search option sets the $filter query to only get the folder named downloaded.
+                                                                            var FolderSearchOption = new List<QueryOption>
+                                                            {
+                                                                new QueryOption ("filter", $"displayName eq %27Exported%27")
+                                                            };
+
+                                                                            try
+                                                                            {
+                                                                                // Loop through and selects only the Exported folder.
+                                                                                var DestinationDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                                                                                    .ChildFolders[$"{FirstSubFolderID.Id}"]
+                                                                                    .ChildFolders[$"{SecondSubFolderID.Id}"]
+                                                                                    .ChildFolders
+                                                                                    .Request(FolderSearchOption)
+                                                                                    .GetAsync();
+
+                                                                                foreach (var Destination in DestinationDetails)
+                                                                                {
+                                                                                    if (Destination.DisplayName == "Exported") // Just a backup check of the folder name.
+                                                                                    {
+                                                                                        var MessageID = Message.Id;
+                                                                                        var MoveDestinationID = Destination.Id;
+
+                                                                                        // Moves the mail to downloaded folder.
+                                                                                        if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, ThirdSubFolderID.Id, MessageID, MoveDestinationID, _Email))
+                                                                                        {
+                                                                                            Console.WriteLine("Email Moved ....");
+                                                                                            EmailMoveStatus = true;
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            Console.WriteLine("Email Did not Move ....");
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            catch (Exception ex)
+                                                                            {
+                                                                                Console.WriteLine($"Exception at attachment download are: {ex.Message}");
+                                                                            }
+
                                                                         }
-                                                                        else
-                                                                        {
-                                                                            Console.WriteLine("Email Did not Move ....");
-                                                                        }                                                                        
                                                                     }
                                                                 }
                                                             }
-                                                            catch (Exception ex)
+                                                        }
+                                                        else
+                                                        {
+                                                            if (!EmailMoveStatus) // Executes if variable is false.
                                                             {
-                                                                Console.WriteLine($"Exception Thrown: {ex.Message}");
-                                                            }
+                                                                // Search for the subfolder named error.
+                                                                var FolderSearchOption2 = new List<QueryOption>
+                                                        {
+                                                            new QueryOption ("filer", $"displayName eq %27Error%27")
+                                                        };
 
+                                                                //Loop thorugh to Select only error folder from the subfolders.
+                                                                var ErroFolderDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                                                                    .ChildFolders[$"{FirstSubFolderID.Id}"]
+                                                                    .ChildFolders[$"{SecondSubFolderID.Id}"]
+                                                                    .ChildFolders
+                                                                    .Request(FolderSearchOption2)
+                                                                    .GetAsync();
+
+                                                                foreach (var ErrorFolder in ErroFolderDetails)
+                                                                {
+                                                                    if (ErrorFolder.DisplayName == "Error") // Just a backup check of the folder name.
+                                                                    {
+                                                                        // Folder ID and the message ID that need to be forwarded to the client.
+                                                                        var MessageID2 = Message.Id;
+                                                                        var ErrorFolderId = ErrorFolder.Id;
+                                                                        var AttachmentStatus = 1; // Extension not accepted.
+
+                                                                        // Email is beeing forwarded.
+                                                                        var ForwardDone = await GraphHelper.ForwardEmtpyEmail(FirstSubFolderID.Id, SecondSubFolderID.Id, ErrorFolderId, MessageID2, _Email, AttachmentStatus);
+
+                                                                        // After forwarding checks if the action returned true.
+                                                                        // Item2 is the bool value returned.
+                                                                        // Item1 is the maile address.
+                                                                        if (ForwardDone.Item2)
+                                                                        {
+                                                                            Console.WriteLine($"Email Forwarded to {ForwardDone.Item1}");
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            Console.WriteLine($"Email not Forawarded. Exception: {ForwardDone.Item1}");
+                                                                        }
+
+                                                                        // Moves the empty emails to error folder once forwarding is done.
+                                                                        if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, ThirdSubFolderID.Id, MessageID2, ErrorFolderId, _Email))
+                                                                        {
+                                                                            Console.WriteLine($"Mail Moved to {ErrorFolder.DisplayName} Folder ....\n");
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            Console.WriteLine($"Mail was Not Moved to {ErrorFolder.DisplayName} Folder ....\n");
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                     Console.WriteLine("-------------------------------------------");
@@ -436,7 +542,7 @@ namespace DEA
             }
         }
 
-        // Move the folder to main import folder on the loca machine.
+        // Move the folder to main import folder on the local machine.
         public static bool MoveFolder(string SourceFolderPath, string DestiFolderPath)
         {
             try
