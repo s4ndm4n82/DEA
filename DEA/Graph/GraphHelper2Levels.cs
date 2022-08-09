@@ -93,7 +93,7 @@ namespace DEA2Levels
                                         gma.HasAttachments,
                                         gma.Attachments
                                     })
-                                    .Top(4) // Increase this to 40                                    
+                                    .Top(20) // Increase this to 40                                    
                                     .GetAsync();
 
                                 // Counts the with attachments.

@@ -67,7 +67,7 @@ namespace DEA
         public static async Task InitializGetAttachment()
         {
             // Email list.
-            // Need to make this read from text file.
+            // TODO: 1. Need to make this read from text file.
             List<string> EmailCheckList = new List<string>();
 
             string[] EmailsList =
@@ -188,7 +188,7 @@ namespace DEA
                                                 gma.HasAttachments,                                               
                                                 gma.Attachments
                                             })
-                                            .Top(4) // Increase this to 40
+                                            .Top(20) // Increase this to 40
                                             .GetAsync();
 
                                         // Gets the message count.
