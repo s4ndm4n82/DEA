@@ -69,45 +69,6 @@ else
     await GraphHelper.InitializGetAttachment();
 }
 
-/*int userChoice = -0x1; // Value is -1 in hex.
-
-while (userChoice != 0)
-{
-    //Console.Clear();
-    Console.WriteLine("Please select one of the options from below:");
-    Console.WriteLine("0. Exit");
-    Console.WriteLine("1. Download Attachments");
-
-    try
-    {
-        userChoice = int.Parse(s: Console.ReadLine());
-    }
-    catch (System.FormatException)
-    {
-        // Setting the choice to invalid value.
-        userChoice = -0x1; // Value is -1 in hex.
-    }
-
-    switch (userChoice)
-    {
-        case 0:
-            Console.Clear();
-            Console.WriteLine("\nGood Bye ... !");
-            Thread.Sleep(1000);
-            Environment.Exit(0);
-            break;
-        
-        case 1:
-            // Download the attachments.
-            await GraphHelper.GetAttachmentTodayAsync();
-            break;
-
-        default:
-            Console.WriteLine("Not a valid choice. Try again.");
-            break;
-    }
-}*/
-
 // Loads the settings from user sectrets file.
 static IConfigurationRoot? LoadAppSettings()
 {
