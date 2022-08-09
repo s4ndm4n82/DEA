@@ -66,6 +66,7 @@ else
 {
     Console.WriteLine("Graph client initialization successful.");
     Console.WriteLine(Environment.NewLine);
+    Console.WriteLine("Starting attachment download process.");
     await GraphHelper.InitializGetAttachment();
 }
 
