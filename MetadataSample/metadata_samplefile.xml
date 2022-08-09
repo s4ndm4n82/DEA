@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!-- Need metadata file to have the same name as the PDF file -->
+<BaseTypeContainer>
+ <BaseTypeObject>
+  <Metadata>
+   <Fields>
+	<Field Type="Text" Label="Email">
+	 <Value>s@s.com</Value>
+	</Field>
+	<Field Type="Text" Label="File Path">
+	 <Value>D:\Import\File\</Value>
+	</Field>
+   </Fields>
+  </Metadata>
+ </BaseTypeObject> 
+</BaseTypeContainer>
