@@ -3,6 +3,7 @@ using Microsoft.Identity.Client;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using DEA2Levels;
+using ReadSettings;
 
 namespace DEA
 {
@@ -66,24 +67,26 @@ namespace DEA
 
         public static async Task InitializGetAttachment()
         {
-            // Email list.
-            // TODO: 1. Need to make this read from text file.
-            List<string> EmailCheckList = new List<string>();
+            /* // Email list.
+             // TODO: 1. Need to make this read from text file.
+             List<string> EmailCheckList = new List<string>();
 
-            string[] EmailsList =
-            {
-                "accounting@efakturamottak.no",
-                "accounting02@efakturamottak.no",
-                "accounting03@efakturamottak.no",
-                "accounting04@efakturamottak.no",
-                "accounting05@efakturamottak.no",
-                "atc@efakturamottak.no",
-                "atc02@efakturamottak.no"
-            };
+             string[] EmailsList =
+             {
+                 "accounting@efakturamottak.no",
+                 "accounting02@efakturamottak.no",
+                 "accounting03@efakturamottak.no",
+                 "accounting04@efakturamottak.no",
+                 "accounting05@efakturamottak.no",
+                 "atc@efakturamottak.no",
+                 "atc02@efakturamottak.no"
+             };
 
-            EmailCheckList.AddRange(EmailsList); // Adds the above range of data tol EmailCheckList list variable.
+             EmailCheckList.AddRange(EmailsList); // Adds the above range of data tol EmailCheckList list variable.
+             */
+            var EmailCheckList = new ReadSettingsClass();
 
-            foreach (string Email in EmailCheckList)
+            foreach (string Email in EmailCheckList.UserAccounts)
             {
                 // Check emails and match them to execute the correct function.
                 try
@@ -235,7 +238,7 @@ namespace DEA
                                                         // Checks the collection empty or not.
                                                         if (AcceptedExtensionCollection.Any(y => y.Name.ToLower().Contains(AcceptedExtention[i])))
                                                         {
-                                                            Console.WriteLine("{0} Email Subject: {1}", _Email, Message.Subject);
+                                                            Console.WriteLine("Processing {0} ... Email Subject: {1}", _Email, Message.Subject);
 
                                                             // FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
                                                             // This has to be called here. Don't put it within the for loop or it will start calling this
@@ -524,7 +527,7 @@ namespace DEA
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Exceptio at download folder creation: {ex.Message}");
+                    Console.WriteLine($"Exception at download folder creation: {ex.Message}");
                 }
             }
 
@@ -724,7 +727,7 @@ namespace DEA
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception Thrown: {ex.Message}");
+                Console.WriteLine($"Exception at moving emails to folders: {ex.Message}");
 
                 return false;
             }

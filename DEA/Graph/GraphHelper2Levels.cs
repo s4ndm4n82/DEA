@@ -1,7 +1,6 @@
 ﻿using Microsoft.Graph;
 using System.Diagnostics.CodeAnalysis;
 using DEA;
-using System.Linq;
 
 namespace DEA2Levels
 {
@@ -58,8 +57,6 @@ namespace DEA2Levels
 
                     foreach (var FirstSubFolderID in FirstSubFolderIDs)
                     {
-                        Console.WriteLine("Folder: {0}", FirstSubFolderID.DisplayName);
-
                         if (FirstSubFolderID.Id != null)
                         {
                             // Second level of subfolders under the inbox.
@@ -137,7 +134,7 @@ namespace DEA2Levels
 
                                                 if (AcceptedExtensionCollection.Any(y => y.Name.ToLower().Contains(AcceptedExtention[i])))
                                                 {
-                                                    Console.WriteLine("{0} Email Subject: {1}", _Email, Message.Subject);
+                                                    Console.WriteLine("Processing {0} ... Email Subject: {1}", _Email, Message.Subject);
 
                                                     // FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
                                                     // This has to be called here. Don't put it within the for loop or it will start calling this

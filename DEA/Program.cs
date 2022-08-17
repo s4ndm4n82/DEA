@@ -1,8 +1,26 @@
 ﻿using DEA;
 using Microsoft.Extensions.Configuration;
+using ReadSettings;
 
 // Aplication title just for fun.
 Console.WriteLine("Download Email Attachments (D.E.A)\n");
+
+/*var Test = new ReadSettingsClass();
+Console.WriteLine("Date Filter Switch: {0}", Test.DateFilter);
+Console.WriteLine("Max emails to Load: {0}", Test.MaxLoadEmails);
+
+foreach (var Email in Test.UserAccounts)
+{
+    Console.WriteLine("Email List: {0}", Email);
+}
+
+Console.WriteLine("Import Folder Letter: {0}", Test.ImportFolderLetter);
+Console.WriteLine("Import Folder Path: {0}", Test.ImportFolderPath);
+
+foreach (var ext in Test.AllowedExtentions)
+{
+    Console.WriteLine("Allowed Extentions: {0}", ext);
+}*/
 
 // Check for the attachment download folder and creates the folder if it's missing.
 GraphHelper.CheckFolders();
@@ -43,7 +61,7 @@ if (appConfig == null)
         string.IsNullOrEmpty(GraphApiUrl) ||
         string.IsNullOrEmpty(ClientSecret))
     {
-        Console.WriteLine("Set the Graph API permissions. Using dotnet user-secrets set .... User secrets is not correct.");
+        Console.WriteLine("Set the Graph API permissions. Using dotnet user-secrets set or appsettings.json.... User secrets is not correct.");
     }
 }
 else
@@ -67,6 +85,7 @@ else
     Console.WriteLine("Graph client initialization successful.");
     Console.WriteLine(Environment.NewLine);
     Console.WriteLine("Starting attachment download process.");
+    Console.WriteLine(Environment.NewLine);
     await GraphHelper.InitializGetAttachment();
 }
 
