@@ -1,11 +1,14 @@
 ﻿using DEA;
+using Serilog;
+using WriteLog;
 using Microsoft.Extensions.Configuration;
 
 // Aplication title just for fun.
-Console.WriteLine("Download Email Attachments (D.E.A)\n");
+WriteLogClass.WriteToLog(3, "Starting DEA ....");
 
-// Check for the attachment download folder and creates the folder if it's missing.
-GraphHelper.CheckFolders();
+// Check for the attachment download folder and the log folder. Then creates the folders if they're missing.
+GraphHelper.CheckFolders("none");
+WriteLogClass.WriteToLog(3, "Checing main folders ....");
 
 // Getting the Graph and checking the settings for Graph.
 var appConfig = LoadAppSettings();
@@ -43,7 +46,7 @@ if (appConfig == null)
         string.IsNullOrEmpty(GraphApiUrl) ||
         string.IsNullOrEmpty(ClientSecret))
     {
-        Console.WriteLine("Set the Graph API permissions. Using dotnet user-secrets set .... User secrets is not correct.");
+        WriteLogClass.WriteToLog(1, "Set the Graph API permissions. Using dotnet user-secrets set or appsettings.json.... User secrets is not correct.");
     }
 }
 else
@@ -60,53 +63,17 @@ else
 // Calls InitializeGraphClient to get the token and connect to the graph API.
 if (!await GraphHelper.InitializeGraphClient(ClientId, Instance, TenantId, GraphApiUrl, ClientSecret, Scopes))
 {
-    Console.WriteLine("Graph client initialization faild.");
+    WriteLogClass.WriteToLog(1, "Graph client initialization faild  .....");
 }
 else
 {
-    Console.WriteLine("Graph client initialization successful.");
-    Console.WriteLine(Environment.NewLine);
+    WriteLogClass.WriteToLog(3, "Graph client initialization successful ....");
+    Thread.Sleep(5000);
+    WriteLogClass.WriteToLog(3, "Starting attachment download process ....");
     await GraphHelper.InitializGetAttachment();
 }
 
-/*int userChoice = -0x1; // Value is -1 in hex.
-
-while (userChoice != 0)
-{
-    //Console.Clear();
-    Console.WriteLine("Please select one of the options from below:");
-    Console.WriteLine("0. Exit");
-    Console.WriteLine("1. Download Attachments");
-
-    try
-    {
-        userChoice = int.Parse(s: Console.ReadLine());
-    }
-    catch (System.FormatException)
-    {
-        // Setting the choice to invalid value.
-        userChoice = -0x1; // Value is -1 in hex.
-    }
-
-    switch (userChoice)
-    {
-        case 0:
-            Console.Clear();
-            Console.WriteLine("\nGood Bye ... !");
-            Thread.Sleep(1000);
-            Environment.Exit(0);
-            break;
-        
-        case 1:
-            // Download the attachments.
-            await GraphHelper.GetAttachmentTodayAsync();
-            break;
-
-        default:
-            Console.WriteLine("Not a valid choice. Try again.");
-            break;
-    }
-}*/
+WriteLogClass.WriteToLog(3, "Email processing ended ...\n");
 
 // Loads the settings from user sectrets file.
 static IConfigurationRoot? LoadAppSettings()
