@@ -1,29 +1,14 @@
 ﻿using DEA;
+using Serilog;
+using WriteLog;
 using Microsoft.Extensions.Configuration;
-using ReadSettings;
 
 // Aplication title just for fun.
-Console.WriteLine("Download Email Attachments (D.E.A)\n");
+WriteLogClass.WriteToLog(3, "Starting DEA ....");
 
-/*var Test = new ReadSettingsClass();
-Console.WriteLine("Date Filter Switch: {0}", Test.DateFilter);
-Console.WriteLine("Max emails to Load: {0}", Test.MaxLoadEmails);
-
-foreach (var Email in Test.UserAccounts)
-{
-    Console.WriteLine("Email List: {0}", Email);
-}
-
-Console.WriteLine("Import Folder Letter: {0}", Test.ImportFolderLetter);
-Console.WriteLine("Import Folder Path: {0}", Test.ImportFolderPath);
-
-foreach (var ext in Test.AllowedExtentions)
-{
-    Console.WriteLine("Allowed Extentions: {0}", ext);
-}*/
-
-// Check for the attachment download folder and creates the folder if it's missing.
-GraphHelper.CheckFolders();
+// Check for the attachment download folder and the log folder. Then creates the folders if they're missing.
+GraphHelper.CheckFolders("none");
+WriteLogClass.WriteToLog(3, "Checing main folders ....");
 
 // Getting the Graph and checking the settings for Graph.
 var appConfig = LoadAppSettings();
@@ -61,7 +46,7 @@ if (appConfig == null)
         string.IsNullOrEmpty(GraphApiUrl) ||
         string.IsNullOrEmpty(ClientSecret))
     {
-        Console.WriteLine("Set the Graph API permissions. Using dotnet user-secrets set or appsettings.json.... User secrets is not correct.");
+        WriteLogClass.WriteToLog(1, "Set the Graph API permissions. Using dotnet user-secrets set or appsettings.json.... User secrets is not correct.");
     }
 }
 else
@@ -78,16 +63,17 @@ else
 // Calls InitializeGraphClient to get the token and connect to the graph API.
 if (!await GraphHelper.InitializeGraphClient(ClientId, Instance, TenantId, GraphApiUrl, ClientSecret, Scopes))
 {
-    Console.WriteLine("Graph client initialization faild.");
+    WriteLogClass.WriteToLog(1, "Graph client initialization faild  .....");
 }
 else
 {
-    Console.WriteLine("Graph client initialization successful.");
-    Console.WriteLine(Environment.NewLine);
-    Console.WriteLine("Starting attachment download process.");
-    Console.WriteLine(Environment.NewLine);
+    WriteLogClass.WriteToLog(3, "Graph client initialization successful ....");
+    Thread.Sleep(5000);
+    WriteLogClass.WriteToLog(3, "Starting attachment download process ....");
     await GraphHelper.InitializGetAttachment();
 }
+
+WriteLogClass.WriteToLog(3, "Email processing ended ...\n");
 
 // Loads the settings from user sectrets file.
 static IConfigurationRoot? LoadAppSettings()

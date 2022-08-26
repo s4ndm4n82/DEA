@@ -50,18 +50,14 @@ namespace ReadSettings
         {
             get
             {
-                bool dFilter;
-
-                return dFilter = bool.Parse(ReturnConfValue("DateFilter"));                
+                return bool.Parse(ReturnConfValue("DateFilter"));                
             }
         }
         public int MaxLoadEmails
         {
             get
-            {
-                int EmailLoad;
-
-                return EmailLoad = int.Parse(ReturnConfValue("MaxLoadEmails"));
+            {   
+                return int.Parse(ReturnConfValue("MaxLoadEmails"));
             }
         }
         public string[]? UserAccounts
@@ -79,19 +75,15 @@ namespace ReadSettings
         public string ImportFolderLetter
         {
             get
-            {
-                string? impFld;
-
-                return impFld = ReturnConfValue("ImportFolderLetter");
+            {   
+                return ReturnConfValue("ImportFolderLetter");
             }
         }
         public string ImportFolderPath
         {
             get
             {
-                string? impNme;
-
-                return impNme = ReturnConfValue("ImportFolderPath");
+                return ReturnConfValue("ImportFolderPath");
             }
         }
         public string[] AllowedExtentions
