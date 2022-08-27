@@ -1,9 +1,9 @@
 ﻿using Microsoft.Graph;
 using System.Diagnostics.CodeAnalysis;
-using Serilog;
 using DEA;
 using ReadSettings;
 using WriteLog;
+using CreateMetadataFile;
 
 namespace DEA2Levels
 {
@@ -139,14 +139,15 @@ namespace DEA2Levels
                                             var DestinationFolderPath = Path.Combine(MakeDestinationFolderPath);
 
                                             // Variable used to store all the accepted extentions.
-                                            string[] AcceptedExtention = ConfigParam.AllowedExtentions;
+                                            //string[] AcceptedExtention = { ".pdf", ".jpg" };
+                                            string[] AcceptedExtention = ConfigParam.AllowedExtentions;                                            
 
                                             // Initilizing the download folder path variable.
                                             string PathFullDownloadFolder = string.Empty;
 
                                             // Used to set the status of if the email is moved or not.
                                             // If moved this will be true. If not the code for forwarding will be executed.
-                                            var EmailMoveStatus = false;
+                                            var EmailMoveStatus = true;
 
                                             // For loop to go through all the extentions from extentions variable.
                                             for (int i = 0; i < AcceptedExtention.Length; ++i)
@@ -162,7 +163,6 @@ namespace DEA2Levels
                                                     // each time and make folder for each file. Also calling this out side of the extentions FOR loop.
                                                     // causes an exception error at the "DownloadFileExistTest" test due file not been available.
                                                     PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders("Download"), GraphHelper.FolderNameRnd(10));
-
 
                                                     foreach (var Attachment in AcceptedExtensionCollection)
                                                     {
@@ -193,6 +193,11 @@ namespace DEA2Levels
 
                                                         if (MsgSwitch)
                                                         {
+                                                            CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, Message.Id, _Email);
+
+
+                                                            WriteLogClass.WriteToLog(3, $"Downloaded attachments from {Message.Subject}");
+
                                                             // Should mark and download the itemattacment which is the correct attachment.
                                                             var TrueAttachment = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                                                             .ChildFolders[$"{FirstSubFolderID.Id}"]
@@ -209,14 +214,12 @@ namespace DEA2Levels
                                                             byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
                                                             // Saves the file to the local hard disk.
-                                                            GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, TrueAttachmentName, TruAttachmentBytes);
-
-                                                            WriteLogClass.WriteToLog(3, $"Downloaded attachments from {Message.Subject}");
+                                                            GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, TrueAttachmentName, TruAttachmentBytes);                                                            
 
                                                             // Directory and file existence check. If not exists it will not return anything.
                                                             string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders("Download")); // Use the main path not the entire download path
                                                             string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder); // This causs an erro when the file is not there.
-
+                                                            
                                                             if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0)
                                                             {
                                                                 WriteLogClass.WriteToLog(3, "Moving downloaded files to local folder.");
@@ -226,9 +229,9 @@ namespace DEA2Levels
                                                                     WriteLogClass.WriteToLog(3, "File moved successfully.");
                                                                     // Search option sets the $filter query to only get the folder named downloaded.
                                                                     var FolderSearchOption = new List<QueryOption>
-                                                            {
-                                                                new QueryOption ("filter", $"displayName eq %27Exported%27")
-                                                            };
+                                                                    {
+                                                                        new QueryOption ("filter", $"displayName eq %27Exported%27")
+                                                                    };
 
                                                                     try
                                                                     {
@@ -250,7 +253,7 @@ namespace DEA2Levels
                                                                                 if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, MessageID, MoveDestinationID, _Email))
                                                                                 {
                                                                                     WriteLogClass.WriteToLog(3, $"Email {Message.Subject} moved to export folder ...");
-                                                                                    EmailMoveStatus = true;
+                                                                                    EmailMoveStatus = false;
                                                                                 }
                                                                                 else
                                                                                 {
@@ -271,7 +274,7 @@ namespace DEA2Levels
                                                 }
                                                 else
                                                 {
-                                                    if (!EmailMoveStatus)
+                                                    if (EmailMoveStatus == false) // Executes if variable is false.
                                                     {
                                                         // Search for the subfolder named error.
                                                         var FolderSearchOption2 = new List<QueryOption>

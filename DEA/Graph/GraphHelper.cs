@@ -236,7 +236,7 @@ namespace DEA
 
                                                     // Used to set the status of if the email is moved or not.
                                                     // If moved this will be true. If not the code for forwarding will be executed.
-                                                    var EmailMoveStatus = false;
+                                                    var EmailMoveStatus = true;
 
                                                     // For loop to go through all the extentions from extentions variable.
                                                     for (int i = 0; i < AcceptedExtention.Length; ++i)
@@ -345,7 +345,7 @@ namespace DEA
                                                                                         if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, ThirdSubFolderID.Id, MessageID, MoveDestinationID, _Email))
                                                                                         {
                                                                                             WriteLogClass.WriteToLog(3, $"Email {Message.Subject} moved to export folder ...");
-                                                                                            EmailMoveStatus = true;
+                                                                                            EmailMoveStatus = false;
                                                                                         }
                                                                                         else
                                                                                         {
@@ -366,7 +366,7 @@ namespace DEA
                                                         }
                                                         else
                                                         {
-                                                            if (!EmailMoveStatus) // Executes if variable is false.
+                                                            if (EmailMoveStatus) // Executes if variable is false.
                                                             {
                                                                 // Search for the subfolder named error.
                                                                 var FolderSearchOption2 = new List<QueryOption>
