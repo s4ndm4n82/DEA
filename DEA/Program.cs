@@ -10,7 +10,7 @@ WriteLogClass.WriteToLog(3, "Starting DEA ....");
 
 // Check for the attachment download folder and the log folder. Then creates the folders if they're missing.
 GraphHelper.CheckFolders("none");
-WriteLogClass.WriteToLog(3, "Checing main folders ....");
+WriteLogClass.WriteToLog(3, "Checking main folders ....");
 
 // Getting the Graph and checking the settings for Graph.
 var appConfig = LoadAppSettings();
