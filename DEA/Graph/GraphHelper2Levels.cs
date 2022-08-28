@@ -33,7 +33,6 @@ namespace DEA2Levels
                 {
                     new QueryOption("search", $"%22received:{DateToDay}%22")
                     //new QueryOption("search", $"%22hasAttachments:true received:{DateToDay}%22")
-                    //new QueryOption("search", $"%22hasAttachments:true%22") //remove this.
                  };
             }
             else
@@ -64,7 +63,7 @@ namespace DEA2Levels
                     Console.WriteLine("Excption Thrown: {0}", ex.Message);
                 }*/
 
-                WriteLogClass.WriteToLog(3, $"Processing Email: {_Email}");
+                WriteLogClass.WriteToLog(3, $"Processing Email {_Email} ....");
 
                 //Top level of mail boxes like user inbox.
                 var FirstSubFolderIDs = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"].ChildFolders                    
@@ -96,7 +95,7 @@ namespace DEA2Levels
                         {
                             if (SecondSubFolderID.DisplayName == "Processing")
                             {
-                                WriteLogClass.WriteToLog(3, $"Processing folder path {FirstSubFolderID.DisplayName}->{SecondSubFolderID.DisplayName}");
+                                WriteLogClass.WriteToLog(3, $"Processing folder path {FirstSubFolderID.DisplayName} -> {SecondSubFolderID.DisplayName}");
                                 // Third level of subfolders under the inbox.
                                 var GetMessageAttachments = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                     .ChildFolders[$"{FirstSubFolderID.Id}"]
@@ -193,10 +192,7 @@ namespace DEA2Levels
 
                                                         if (MsgSwitch)
                                                         {
-                                                            CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, Message.Id, _Email);
-
-
-                                                            WriteLogClass.WriteToLog(3, $"Downloaded attachments from {Message.Subject}");
+                                                            WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 
                                                             // Should mark and download the itemattacment which is the correct attachment.
                                                             var TrueAttachment = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
@@ -214,19 +210,24 @@ namespace DEA2Levels
                                                             byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
                                                             // Saves the file to the local hard disk.
-                                                            GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, TrueAttachmentName, TruAttachmentBytes);                                                            
+                                                            GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, TrueAttachmentName, TruAttachmentBytes);
+
+                                                            WriteLogClass.WriteToLog(3, $"Downloaded attachments from {Message.Subject}   ....");
+
+                                                            // Creating the metdata file.
+                                                            var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email, PathFullDownloadFolder);
 
                                                             // Directory and file existence check. If not exists it will not return anything.
                                                             string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders("Download")); // Use the main path not the entire download path
                                                             string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder); // This causs an erro when the file is not there.
                                                             
-                                                            if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0)
+                                                            if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0 && FileFlag)
                                                             {
-                                                                WriteLogClass.WriteToLog(3, "Moving downloaded files to local folder.");
+                                                                WriteLogClass.WriteToLog(3, "Moving downloaded files to local folder ....");
                                                                 // Moves the downloaded files to destination folder. This would create the folder path if it's missing.
                                                                 if (GraphHelper.MoveFolder(PathFullDownloadFolder, DestinationFolderPath))
                                                                 {
-                                                                    WriteLogClass.WriteToLog(3, "File moved successfully.");
+                                                                    WriteLogClass.WriteToLog(3, "File moved successfully ....");
                                                                     // Search option sets the $filter query to only get the folder named downloaded.
                                                                     var FolderSearchOption = new List<QueryOption>
                                                                     {
@@ -307,11 +308,11 @@ namespace DEA2Levels
                                                                 // Item1 is the maile address.
                                                                 if (ForwardDone.Item2)
                                                                 {
-                                                                    WriteLogClass.WriteToLog(3, $"Email forwarded to {ForwardDone.Item1}");
+                                                                    WriteLogClass.WriteToLog(3, $"Email forwarded to {ForwardDone.Item1}  ....");
                                                                 }
                                                                 else
                                                                 {
-                                                                    WriteLogClass.WriteToLog(3, $"Email not forwarded to {ForwardDone.Item1}");
+                                                                    WriteLogClass.WriteToLog(3, $"Email not forwarded to {ForwardDone.Item1}  ....");
                                                                 }
 
                                                                 // Moves the empty emails to error folder once forwarding is done.
@@ -366,11 +367,11 @@ namespace DEA2Levels
                                                             // Item1 is the maile address.
                                                             if (ForwardDone.Item2)
                                                             {
-                                                                WriteLogClass.WriteToLog(3, $"Email forwarded to {ForwardDone.Item1}");
+                                                                WriteLogClass.WriteToLog(3, $"Email forwarded to {ForwardDone.Item1}  ....");
                                                             }
                                                             else
                                                             {
-                                                                WriteLogClass.WriteToLog(3, $"Email not forwarded to {ForwardDone.Item1}");
+                                                                WriteLogClass.WriteToLog(3, $"Email not forwarded to {ForwardDone.Item1}  ....");
                                                             }
 
                                                             // Moves the empty emails to error folder once forwarding is done.

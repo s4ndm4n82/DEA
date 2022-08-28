@@ -1,12 +1,6 @@
 ﻿using DEA;
 using WriteLog;
-using CreateMetadataFile;
 using Microsoft.Extensions.Configuration;
-
-Console.WriteLine("Program Starting ...");
-
-CreateMetaDataXml.WriteMetadataXml("test@test.com");
-
 
 // TODO 1: Brake the main graph functions into smaller set of functions.
 // TODO 2: Change the usage of DEA.conf to app.conf (But I don't think it's needed).
