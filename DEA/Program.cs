@@ -1,14 +1,16 @@
 ﻿using DEA;
-using Serilog;
 using WriteLog;
 using Microsoft.Extensions.Configuration;
+
+// TODO 1: Brake the main graph functions into smaller set of functions.
+// TODO 2: Change the usage of DEA.conf to app.conf (But I don't think it's needed).
 
 // Aplication title just for fun.
 WriteLogClass.WriteToLog(3, "Starting DEA ....");
 
 // Check for the attachment download folder and the log folder. Then creates the folders if they're missing.
 GraphHelper.CheckFolders("none");
-WriteLogClass.WriteToLog(3, "Checing main folders ....");
+WriteLogClass.WriteToLog(3, "Checking main folders ....");
 
 // Getting the Graph and checking the settings for Graph.
 var appConfig = LoadAppSettings();
