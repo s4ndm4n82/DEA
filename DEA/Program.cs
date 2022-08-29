@@ -3,7 +3,7 @@ using WriteLog;
 using Microsoft.Extensions.Configuration;
 
 // TODO 1: Brake the main graph functions into smaller set of functions.
-// TODO 2: Change the usage of DEA.conf to app.conf (But I don't think it's needed).
+// TODO 2: Change the usage of DEA.conf to app.conf (But I don't think it's needed. Bcause I use app.conf to stroe some very important data set.).
 
 // Aplication title just for fun.
 WriteLogClass.WriteToLog(3, "Starting DEA ....");

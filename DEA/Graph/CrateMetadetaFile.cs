@@ -2,6 +2,7 @@
 using System.Xml;
 using System.Text;
 using WriteLog;
+using System.Text.RegularExpressions;
 
 namespace CreateMetadataFile
 {
@@ -43,12 +44,12 @@ namespace CreateMetadataFile
 
                     if (System.IO.File.Exists(XmlSaveFile))
                     {
-                        WriteLogClass.WriteToLog(3, $"Metdata file created at {XmlSaveFile} ....");
+                        WriteLogClass.WriteToLog(3, $"Metdata file created ....");
                         XmlSaveSwitch = true;
                     }
                     else
                     {
-                        WriteLogClass.WriteToLog(1, $"Unable to create metadata file at {XmlSaveFile} ....");
+                        WriteLogClass.WriteToLog(1, $"Unable to create metadata ....");
                     }
                 }
                 catch (Exception ex)
@@ -63,9 +64,9 @@ namespace CreateMetadataFile
         public static bool GetToEmail4Xml(GraphServiceClient graphClient, string SubFolderId1, string SubFolderId2, string SubFolderId3, string MessageID, string _Email, string _FolderPath)
         {
             var FileFlag = false;
-            IEnumerable<Recipient> ToEmails;
+            IEnumerable<InternetMessageHeader> ToEmails;
             Task<Message> GetToEmail;
-            
+
             try
             {
                 if (string.IsNullOrEmpty(SubFolderId3))
@@ -77,7 +78,7 @@ namespace CreateMetadataFile
                             .Request()
                             .Select(eml => new
                             {
-                                eml.ToRecipients
+                                eml.InternetMessageHeaders
                             })
                             .GetAsync();
                 }
@@ -91,19 +92,27 @@ namespace CreateMetadataFile
                             .Request()
                             .Select(eml => new
                             {
-                                eml.ToRecipients
+                                eml.InternetMessageHeaders
                             })
                             .GetAsync();
                 }
 
-                ToEmails = GetToEmail.Result.ToRecipients.Where(x => x.EmailAddress.Address.Contains("@efakturamottak.no"));
+                ToEmails = GetToEmail.Result.InternetMessageHeaders.Where(adrs => adrs.Value.Contains("@efakturamottak.no"));
 
                 foreach (var ToEmail in ToEmails)
                 {
-                    if (!string.IsNullOrEmpty(ToEmail.EmailAddress.Address))
+                    if (!string.IsNullOrEmpty(ToEmail.Value))
                     {
-                        WriteLogClass.WriteToLog(3, $"Recipient email {ToEmail.EmailAddress.Address} extracted ...");
-                        FileFlag = WriteMetadataXml(ToEmail.EmailAddress.Address, _FolderPath);
+                        string RegExString = @"[0-9a-z]+@efakturamottak\.no";
+                        Regex RecivedEmail = new Regex(RegExString, RegexOptions.IgnoreCase);
+                        var ExtractedEmail = RecivedEmail.Match(ToEmail.Value);
+
+                        if (ExtractedEmail.Success)
+                        {
+                            var PassEmail = ExtractedEmail.Value.ToLower();
+                            WriteLogClass.WriteToLog(3, $"Recipient email {PassEmail} extracted ...");
+                            FileFlag = WriteMetadataXml(PassEmail, _FolderPath);
+                        }
                     }                    
                 }
             }
