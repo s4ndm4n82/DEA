@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using WriteLog;
 using DEA2Levels;
 using ReadSettings;
-using CreateMetadataFile;
+using CreateMetadataFile; // Might need to use this later so leaving it.
 
 namespace DEA
 {
@@ -311,7 +311,8 @@ namespace DEA
                                                                     WriteLogClass.WriteToLog(3, $"Downloaded attachments from {Message.Subject}   ....");
 
                                                                     // Creating the metdata file.
-                                                                    var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, ThirdSubFolderID.Id, Message.Id, _Email, PathFullDownloadFolder);
+                                                                    //var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, ThirdSubFolderID.Id, Message.Id, _Email, PathFullDownloadFolder, TrueAttachmentName);
+                                                                    var FileFlag = true;
 
                                                                     // Directory and file existence check. If not exists it will not return anything.
                                                                     string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders("Download")); // Use the main path not the entire download path

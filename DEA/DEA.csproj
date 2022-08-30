@@ -6,6 +6,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>cda6a52f-8fe8-41fc-88e0-e9df3048fd95</UserSecretsId>
+    <SignAssembly>False</SignAssembly>
+    <Description>Email attachment downloader using Microsfot graph API as backend.</Description>
+    <Copyright>Digital Capture AS</Copyright>
+    <AssemblyVersion>1.0.0.8</AssemblyVersion>
+    <FileVersion>1.0.0.8.20</FileVersion>
+    <PackageProjectUrl>https://digitalcapture.no</PackageProjectUrl>
+    <Title>Download Email Attachments - DEA</Title>
+    <Version>$(VersionPrefix)</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,7 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using DEA;
 using ReadSettings;
 using WriteLog;
-using CreateMetadataFile;
+using GetRecipientEmail;
+using CreateMetadataFile; // Might need to use this later so leaving it.
+
 
 namespace DEA2Levels
 {
@@ -145,8 +147,11 @@ namespace DEA2Levels
                                             // Assigning display names.                                            
                                             var FirstFolderName = FirstSubFolderID.DisplayName;
 
+                                            // Extracted recipient email for creating the folder path.
+                                            var RecipientEmail = GetRecipientEmailClass.GetRecipientEmail(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email);                                            
+
                                             // Creating the destnation folders.
-                                            string[] MakeDestinationFolderPath = { ImportFolderPath, _Email, FirstFolderName };
+                                            string[] MakeDestinationFolderPath = { ImportFolderPath, _Email, FirstFolderName, RecipientEmail };
                                             var DestinationFolderPath = Path.Combine(MakeDestinationFolderPath);
 
                                             // Variable used to store all the accepted extentions.
@@ -227,7 +232,8 @@ namespace DEA2Levels
                                                             WriteLogClass.WriteToLog(3, $"Downloaded attachments from {Message.Subject}   ....");
 
                                                             // Creating the metdata file.
-                                                            var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email, PathFullDownloadFolder);
+                                                            //var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email, PathFullDownloadFolder, TrueAttachmentName);
+                                                            var FileFlag = true;
 
                                                             // Directory and file existence check. If not exists it will not return anything.
                                                             string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders("Download")); // Use the main path not the entire download path
