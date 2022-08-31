@@ -14,7 +14,19 @@ namespace GetRecipientEmail
 
             try
             {
-                if (string.IsNullOrEmpty(SubFolderId3))
+                if (string.IsNullOrEmpty(SubFolderId3) && string.IsNullOrEmpty(SubFolderId2))
+                {
+                    GetToEmail = graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                            .ChildFolders[$"{SubFolderId1}"]
+                            .Messages[$"{MessageID}"]
+                            .Request()
+                            .Select(eml => new
+                            {
+                                eml.InternetMessageHeaders
+                            })
+                            .GetAsync();
+                }
+                else if (string.IsNullOrEmpty(SubFolderId3))
                 {
                     GetToEmail = graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                             .ChildFolders[$"{SubFolderId1}"]

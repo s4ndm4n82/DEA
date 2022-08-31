@@ -4,14 +4,12 @@ using DEA;
 using ReadSettings;
 using WriteLog;
 using GetRecipientEmail;
-using CreateMetadataFile; // Might need to use this later so leaving it.
 
-
-namespace DEA2Levels
+namespace DEAHelper1Leve
 {
-    internal class GraphHelper2Levels
+    internal class GraphHelper1LevelClass
     {
-        public static async Task GetEmailsAttacmentsAccount([NotNull] GraphServiceClient graphClient, string _Email)
+        public static async Task GetEmailsAttacments1Level([NotNull] GraphServiceClient graphClient, string _Email)
         {
             // Parameters read from the config files.
             var ConfigParam = new ReadSettingsClass();
@@ -44,43 +42,10 @@ namespace DEA2Levels
 
             try
             {
-                /* Creating a new connection. Need to use this later
-                var DataConnector = new Microsoft.Graph.ExternalConnectors.ExternalConnection
-                {
-                    Id = "DEADaemon",
-                    Name = "DEA Daemon",
-                    Description = "DEA downloader for mail attachments."
-                };
-
-                try
-                {
-                    await graphClient.External.Connections
-                    .Request()
-                    .AddAsync(DataConnector);
-
-                    Console.WriteLine("Connection Sue");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Excption Thrown: {0}", ex.Message);
-                }*/
-
-                /*var FilePath = @"F:\Users\SiNUX\Development\Repo Clones\s4ndm4n82\DEA\DEA\bin\Debug\net6.0";
-
-                CreateMetaDataXml.GetToEmail4Xml(graphClient, "AQMkADMzADRjYmMyZi05MzdkLTQxZGItODdhZi0zYjZhOGJlOGM2YWUALgAAA_pAcT3ZzxpDsmoc2Z1vKDABAIqHRYfBJYdInlpefO57fJwAAAIBUwAAAA=="
-                                                , "AQMkADMzADRjYmMyZi05MzdkLTQxZGItODdhZi0zYjZhOGJlOGM2YWUALgAAA_pAcT3ZzxpDsmoc2Z1vKDABAIqHRYfBJYdInlpefO57fJwAAAIBVgAAAA=="
-                                                , null!
-                                                , "AAMkADMzNGNiYzJmLTkzN2QtNDFkYi04N2FmLTNiNmE4YmU4YzZhZQBGAAAAAADqQHE92c8aQ7JqHNmdbygwBwCKh0WHwSWHSJ5aXnzue3ycAAAAAAFWAACKh0WHwSWHSJ5aXnzue3ycAAA-BwV8AAA="
-                                                , "accounting@efakturamottak.no"
-                                                , FilePath);
-
-                WriteLogClass.WriteToLog(3, $"Creating XML funtion called stop the program from here ....");
-                Thread.Sleep(1000000);*/
-
                 WriteLogClass.WriteToLog(3, $"Processing Email {_Email} ....");
 
                 //Top level of mail boxes like user inbox.
-                var FirstSubFolderIDs = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"].ChildFolders                    
+                var FirstSubFolderIDs = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"].ChildFolders
                     .Request()
                     .Select(fid => new
                     {
@@ -95,42 +60,27 @@ namespace DEA2Levels
                     if (FirstSubFolderID.Id != null)
                     {
                         // Second level of subfolders under the inbox.
-                        var SecondSubFolderIDs = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                        var GetMessageAttachments = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                             .ChildFolders[$"{FirstSubFolderID.Id}"]
-                            .ChildFolders
-                            .Request()
-                            .Select(sid => new
+                            .Messages
+                            .Request(SearchOptions)
+                            .Expand("attachments")
+                            .Select(gma => new
                             {
-                                sid.Id,
-                                sid.DisplayName
+                                gma.Id,
+                                gma.Subject,
+                                gma.HasAttachments,
+                                gma.Attachments
                             })
+                            .Top(MaxAmountOfEmails) // Increase this to 40                                    
                             .GetAsync();
-
-                        foreach (var SecondSubFolderID in SecondSubFolderIDs)
-                        {
-                            WriteLogClass.WriteToLog(3, $"Processing folder path {FirstSubFolderID.DisplayName} -> {SecondSubFolderID.DisplayName}");
-                            // Third level of subfolders under the inbox.
-                            var GetMessageAttachments = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
-                                .ChildFolders[$"{FirstSubFolderID.Id}"]
-                                .ChildFolders[$"{SecondSubFolderID.Id}"]
-                                .Messages
-                                .Request(SearchOptions)
-                                .Expand("attachments")
-                                .Select(gma => new
-                                {
-                                    gma.Id,
-                                    gma.Subject,
-                                    gma.HasAttachments,
-                                    gma.Attachments
-                                })
-                                .Top(MaxAmountOfEmails) // Increase this to 40                                    
-                                .GetAsync();
-
-                                // Counts the with attachments.
-                                var MessageCount = GetMessageAttachments.Count();
+                        
+                        // Counts the with attachments.
+                        var MessageCount = GetMessageAttachments.Count();
 
                                 if (MessageCount != 0)
                                 {
+                                    WriteLogClass.WriteToLog(3, $"Processing folder path {FirstSubFolderID.DisplayName}");
                                     // Looping through the messages.
                                     foreach (var Message in GetMessageAttachments)
                                     {
@@ -145,18 +95,17 @@ namespace DEA2Levels
 
                                             // Assigning display names.                                            
                                             var FirstFolderName = FirstSubFolderID.DisplayName;
-                                            var SecondFolderName = SecondSubFolderID.DisplayName;
 
                                             // Extracted recipient email for creating the folder path.
-                                            //var RecipientEmail = GetRecipientEmailClass.GetRecipientEmail(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email);                                            
+                                            var RecipientEmail = GetRecipientEmailClass.GetRecipientEmail(graphClient, FirstSubFolderID.Id, null!, StaticThirdSubFolderID, Message.Id, _Email);
 
                                             // Creating the destnation folders.
-                                            string[] MakeDestinationFolderPath = { ImportFolderPath, _Email, FirstFolderName, SecondFolderName };
+                                            string[] MakeDestinationFolderPath = { ImportFolderPath, _Email, FirstFolderName, RecipientEmail };
                                             var DestinationFolderPath = Path.Combine(MakeDestinationFolderPath);
 
                                             // Variable used to store all the accepted extentions.
                                             //string[] AcceptedExtention = { ".pdf", ".jpg" };
-                                            string[] AcceptedExtention = ConfigParam.AllowedExtentions;                                            
+                                            string[] AcceptedExtention = ConfigParam.AllowedExtentions;
 
                                             // Initilizing the download folder path variable.
                                             string PathFullDownloadFolder = string.Empty;
@@ -194,7 +143,6 @@ namespace DEA2Levels
                                                             // having signaturs as attachments.
                                                             var CheckMsgId = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                                                         .ChildFolders[$"{FirstSubFolderID.Id}"]
-                                                                        .ChildFolders[$"{SecondSubFolderID.Id}"]
                                                                         .Messages[$"{Message.Id}"]
                                                                         .Request()
                                                                         .GetAsync();
@@ -214,7 +162,6 @@ namespace DEA2Levels
                                                             // Should mark and download the itemattacment which is the correct attachment.
                                                             var TrueAttachment = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                                                             .ChildFolders[$"{FirstSubFolderID.Id}"]
-                                                                            .ChildFolders[$"{SecondSubFolderID.Id}"]
                                                                             .Messages[$"{Message.Id}"]
                                                                             .Attachments[$"{Attachment.Id}"]
                                                                             .Request()
@@ -238,7 +185,7 @@ namespace DEA2Levels
                                                             // Directory and file existence check. If not exists it will not return anything.
                                                             string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders("Download")); // Use the main path not the entire download path
                                                             string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder); // This causs an erro when the file is not there.
-                                                            
+
                                                             if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0 && FileFlag)
                                                             {
                                                                 WriteLogClass.WriteToLog(3, "Moving downloaded files to local folder ....");
@@ -257,7 +204,6 @@ namespace DEA2Levels
                                                                         // Loop through and selects only the Exported folder.
                                                                         var DestinationDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                                                             .ChildFolders[$"{FirstSubFolderID.Id}"]
-                                                                            .ChildFolders[$"{SecondSubFolderID.Id}"]
                                                                             .ChildFolders
                                                                             .Request(FolderSearchOption)
                                                                             .GetAsync();
@@ -270,7 +216,7 @@ namespace DEA2Levels
                                                                                 var MoveDestinationID = Destination.Id;
 
                                                                                 // Moves the mail to downloaded folder.
-                                                                                if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, MessageID, MoveDestinationID, _Email))
+                                                                                if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, null!, StaticThirdSubFolderID, MessageID, MoveDestinationID, _Email))
                                                                                 {
                                                                                     WriteLogClass.WriteToLog(3, $"Email {Message.Subject} moved to export folder ...");
                                                                                     EmailMoveStatus = false;
@@ -305,7 +251,6 @@ namespace DEA2Levels
                                                         //Loop thorugh to Select only error folder from the subfolders.
                                                         var ErroFolderDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                                             .ChildFolders[$"{FirstSubFolderID.Id}"]
-                                                            .ChildFolders[$"{SecondSubFolderID.Id}"]
                                                             .ChildFolders
                                                             .Request(FolderSearchOption2)
                                                             .GetAsync();
@@ -336,7 +281,7 @@ namespace DEA2Levels
                                                                 }
 
                                                                 // Moves the empty emails to error folder once forwarding is done.
-                                                                if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, MessageID2, ErrorFolderId, _Email))
+                                                                if (await GraphHelper.MoveEmails(FirstSubFolderID.Id,null!, StaticThirdSubFolderID, MessageID2, ErrorFolderId, _Email))
                                                                 {
                                                                     WriteLogClass.WriteToLog(3, $"Mail Moved to {ErrorFolder.DisplayName} Folder ....");
                                                                 }
@@ -365,7 +310,6 @@ namespace DEA2Levels
                                                 {
                                                     var ErroFolderDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
                                                     .ChildFolders[$"{FirstSubFolderID.Id}"]
-                                                    .ChildFolders[$"{SecondSubFolderID.Id}"]
                                                     .ChildFolders
                                                     .Request(FolderSearchOption2)
                                                     .GetAsync();
@@ -396,7 +340,7 @@ namespace DEA2Levels
                                                             }
 
                                                             // Moves the empty emails to error folder once forwarding is done.
-                                                            if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, MessageID2, ErrorFolderId, _Email))
+                                                            if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, null!, StaticThirdSubFolderID, MessageID2, ErrorFolderId, _Email))
                                                             {
                                                                 WriteLogClass.WriteToLog(3, $"Mail Moved to {ErrorFolder.DisplayName} Folder ....");
                                                             }
@@ -415,7 +359,8 @@ namespace DEA2Levels
                                         }
                                     }
                                 }
-                        }
+                            
+                        
                     }
                 }
             }

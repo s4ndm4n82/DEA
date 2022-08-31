@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using WriteLog;
 using DEA2Levels;
+using DEAHelper1Leve;
 using ReadSettings;
 using CreateMetadataFile; // Might need to use this later so leaving it.
 
@@ -18,7 +19,7 @@ namespace DEA
         // Initilize the graph clinet and calls GetAuthTokenWithOutUser() to get the token.
         // If Task<bool> keeps giving an error switch to bool. And change the return Task.FromResult(true) to return true;
         public static Task<bool> InitializeGraphClient(string ClientId, string InstanceId, string TenantId, string GraphUrl, string ClientSecret, string[] scopes)
-        {   
+        {
             try
             {
                 graphClient = new GraphServiceClient(GraphUrl,
@@ -83,13 +84,13 @@ namespace DEA
                     Regex EmailRegEx = new Regex(@"^accounting+(?=[0-9]{0,3}@[a-z]+[\.][a-z]{2,3})");
                     if (EmailRegEx.IsMatch(Email))
                     {
-                        // Calls the function for reading accounting emails for attachments.
-                        await GraphHelper2Levels.GetEmailsAttacmentsAccount(graphClient!, Email);
+                        // Calls the function for reading accounting emails for attachments.                        
+                        await GraphHelper1LevelClass.GetEmailsAttacments1Level(graphClient!, Email);
                     }
                     else
                     {
                         // Calls the function to read ATC emails.
-                        await GetAttachmentAtc(Email);
+                        await GraphHelper2Levels.GetEmailsAttacmentsAccount(graphClient!, Email);
                     }
                 }
                 catch (Exception ex)
@@ -643,17 +644,11 @@ namespace DEA
 
                     if (AttnStatus != 1)
                     {
-                        MailComment = "Hi,<br />" +
-                            "<b>Please don't respond to this email. We're testing a new system.</b><br />" +
-                            "You might see a few emails like this, just ignore them. Sorry for the inconvenience.";
-                        //"Hi,<br /> Below email doesn't contain any attachment."; // Can be change with html.
+                        MailComment = "Hi,<br /> Below email doesn't contain any attachment."; // Can be change with html.
                     }
                     else
                     {
-                        MailComment = "Hi,<br />" +
-                            "<b>Please don't respond to this email. We're testing a new system.</b><br />" +
-                            "You might see a few emails like this, just ignore them. Sorry for the inconvenience.";
-                        //"Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
+                        MailComment = "Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
                     }
 
                     // Recipient setup for the mail header.
@@ -703,17 +698,11 @@ namespace DEA
 
                     if (AttnStatus != 1)
                     {
-                        MailComment = "Hi,<br />" +
-                            "<b>Please don't respond to this email. We're testing a new system.</b><br />" +
-                            "You might see a few emails like this, just ignore them. Sorry for the inconvenience.";
-                        //"Hi,<br /> Below email doesn't contain any attachment."; // Can be change with html.
+                        MailComment = "Hi,<br /> Below email doesn't contain any attachment."; // Can be change with html.
                     }
                     else
                     {
-                        MailComment = "Hi,<br />" +
-                            "<b>Please don't respond to this email. We're testing a new system.</b><br />" +
-                            "You might see a few emails like this, just ignore them. Sorry for the inconvenience.";
-                        //"Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
+                        MailComment = "Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
                     }
 
                     // Recipient setup for the mail header.
@@ -753,13 +742,22 @@ namespace DEA
         {
             try
             {
-                if (!string.IsNullOrEmpty(ThirdFolderId))
+                if (string.IsNullOrEmpty(ThirdFolderId) && string.IsNullOrEmpty(SecondFolderId))
+                {
+                    //Graph api call to move the email message.
+                    await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"]
+                        .ChildFolders[$"{FirstFolderId}"]
+                        .Messages[$"{MsgId}"]
+                        .Move(DestiId)
+                        .Request()
+                        .PostAsync();
+                }
+                else if (string.IsNullOrEmpty(ThirdFolderId))
                 {
                     //Graph api call to move the email message.
                     await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"]
                         .ChildFolders[$"{FirstFolderId}"]
                         .ChildFolders[$"{SecondFolderId}"]
-                        .ChildFolders[$"{ThirdFolderId}"]
                         .Messages[$"{MsgId}"]
                         .Move(DestiId)
                         .Request()
@@ -771,6 +769,7 @@ namespace DEA
                     await graphClient!.Users[$"{_Email}"].MailFolders["Inbox"]
                         .ChildFolders[$"{FirstFolderId}"]
                         .ChildFolders[$"{SecondFolderId}"]
+                        .ChildFolders[$"{ThirdFolderId}"]
                         .Messages[$"{MsgId}"]
                         .Move(DestiId)
                         .Request()
