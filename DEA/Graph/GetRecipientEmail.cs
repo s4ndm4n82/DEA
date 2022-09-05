@@ -68,6 +68,7 @@ namespace GetRecipientEmail
                         {
                             rEmail = ExtractedEmail.Value.ToLower().Replace(" ","");
                             WriteLogClass.WriteToLog(3, $"Recipient email {rEmail} extracted ...");
+                            break;
                         }
                     }
                 }

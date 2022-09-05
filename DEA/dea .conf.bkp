@@ -1,0 +1,6 @@
+﻿DateFilter = false
+MaxLoadEmails = 4
+UserAccounts = accounting@efakturamottak.no, accounting02@efakturamottak.no, accounting03@efakturamottak.no, accounting04@efakturamottak.no, accounting05@efakturamottak.no, atc@efakturamottak.no, atc02@efakturamottak.no
+ImportFolderLetter = D:
+ImportFolderPath = Import
+AllowedExtentions = .pdf, .jpg
