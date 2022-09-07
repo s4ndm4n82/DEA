@@ -201,13 +201,13 @@ namespace DEA2Levels
                                                     string TrueAttachmentName = TrueAttachmentProps.Name.Replace(@"\", " ").Replace("/", " "); ;
                                                     byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
-                                                    if (TruAttachmentBytes.Length < 10000)
+                                                    if (TruAttachmentBytes.Length < 7168)
                                                     {
                                                         WriteLogClass.WriteToLog(3, $"Attachment size {TruAttachmentBytes.Length} too small ... skipping to the next file ....");
                                                         continue;
                                                     }
                                                     
-                                                    if (TruAttachmentBytes.Length > 10000)
+                                                    if (TruAttachmentBytes.Length > 7168)
                                                     {
                                                         WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 
