@@ -3,7 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using DEA;
 using ReadSettings;
 using WriteLog;
-using GetRecipientEmail;
+using FolderCleaner;
+using GetRecipientEmail; // Might need it later.
 using CreateMetadataFile; // Might need to use this later so leaving it.
 
 
@@ -155,16 +156,17 @@ namespace DEA2Levels
                                         string[] MakeDestinationFolderPath = { ImportFolderPath, _Email, FirstFolderName, SecondFolderName };
                                         var DestinationFolderPath = Path.Combine(MakeDestinationFolderPath);
 
+                                        // Calls the folder cleaner to remove empty folders.
+                                        FolderCleanerClass.GetFolders(DestinationFolderPath);
+
                                         // Variable used to store all the accepted extentions.
-                                        //string[] AcceptedExtention = { ".pdf", ".jpg" };
                                         string[] AcceptedExtentions = ConfigParam.AllowedExtentions;
 
                                         // Initilizing the download folder path variable.
                                         string PathFullDownloadFolder = string.Empty;
 
-                                        // Used to set the status of if the email is moved or not.
-                                        // If moved this will be true. If not the code for forwarding will be executed.
-                                        var EmailMoveStatus = true;
+                                        // Export switch
+                                        var MoveToExport = false;
 
                                         // For loop to go through all the extentions from extentions variable.
                                         foreach (var AcceptedExtention in AcceptedExtentions)
@@ -196,7 +198,7 @@ namespace DEA2Levels
 
                                                     // Details of the attachment.
                                                     var TrueAttachmentProps = (FileAttachment)TrueAttachment;
-                                                    string TrueAttachmentName = TrueAttachmentProps.Name;
+                                                    string TrueAttachmentName = TrueAttachmentProps.Name.Replace(@"\", " ").Replace("/", " "); ;
                                                     byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
                                                     if (TruAttachmentBytes.Length < 10000)
@@ -229,6 +231,7 @@ namespace DEA2Levels
                                                             if (GraphHelper.MoveFolder(PathFullDownloadFolder, DestinationFolderPath))
                                                             {
                                                                 WriteLogClass.WriteToLog(3, "File moved successfully ....");
+                                                                MoveToExport = true;
                                                             }
                                                             else
                                                             {
@@ -244,46 +247,48 @@ namespace DEA2Levels
                                             }
                                         }
 
-                                        // Search option sets the $filter query to only get the folder named downloaded.
-                                        var FolderSearchOption = new List<QueryOption>
+                                        if (MoveToExport)
+                                        {
+                                            // Search option sets the $filter query to only get the folder named downloaded.
+                                            var FolderSearchOption = new List<QueryOption>
                                         {
                                             new QueryOption ("filter", $"displayName eq %27Exported%27")
                                         };
 
-                                        try
-                                        {
-                                            // Loop through and selects only the Exported folder.
-                                            var DestinationDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
-                                                .ChildFolders[$"{FirstSubFolderID.Id}"]
-                                                .ChildFolders[$"{SecondSubFolderID.Id}"]
-                                                .ChildFolders
-                                                .Request(FolderSearchOption)
-                                                .GetAsync();
-
-                                            foreach (var Destination in DestinationDetails)
+                                            try
                                             {
-                                                if (Destination.DisplayName == "Exported") // Just a backup check of the folder name.
-                                                {
-                                                    var MessageID = Message.Id;
-                                                    var MoveDestinationID = Destination.Id;
+                                                // Loop through and selects only the Exported folder.
+                                                var DestinationDetails = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                                                    .ChildFolders[$"{FirstSubFolderID.Id}"]
+                                                    .ChildFolders[$"{SecondSubFolderID.Id}"]
+                                                    .ChildFolders
+                                                    .Request(FolderSearchOption)
+                                                    .GetAsync();
 
-                                                    // Moves the mail to downloaded folder.
-                                                    if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, MessageID, MoveDestinationID, _Email))
+                                                foreach (var Destination in DestinationDetails)
+                                                {
+                                                    if (Destination.DisplayName == "Exported") // Just a backup check of the folder name.
                                                     {
-                                                        WriteLogClass.WriteToLog(3, $"Email {Message.Subject} moved to export folder ...");
-                                                        EmailMoveStatus = false;
-                                                    }
-                                                    else
-                                                    {
-                                                        WriteLogClass.WriteToLog(3, $"Email {Message.Subject} is not moved to export folder ...");
+                                                        var MessageID = Message.Id;
+                                                        var MoveDestinationID = Destination.Id;
+
+                                                        // Moves the mail to downloaded folder.
+                                                        if (await GraphHelper.MoveEmails(FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, MessageID, MoveDestinationID, _Email))
+                                                        {
+                                                            WriteLogClass.WriteToLog(3, $"Email {Message.Subject} moved to export folder ...");
+                                                        }
+                                                        else
+                                                        {
+                                                            WriteLogClass.WriteToLog(3, $"Email {Message.Subject} is not moved to export folder ...");
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            WriteLogClass.WriteToLog(1, $"Exception at attachment download area 2level: {ex.Message}");
-                                        }
+                                            catch (Exception ex)
+                                            {
+                                                WriteLogClass.WriteToLog(1, $"Exception at attachment download area 2level: {ex.Message}");
+                                            }
+                                        }                                        
                                     }
                                     else
                                     {
