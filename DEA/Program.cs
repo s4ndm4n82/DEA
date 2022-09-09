@@ -1,14 +1,17 @@
 ﻿using DEA;
 using WriteLog;
+using FolderCleaner;
 using Microsoft.Extensions.Configuration;
 
-// TODO 1: Brake the main graph functions into smaller set of functions.
+// TODO 1: Brake the main graph functions into smaller set of chuncks.
 // TODO 2: Change the usage of DEA.conf to app.conf (But I don't think it's needed. Bcause I use app.conf to stroe some very important data set.).
 // TODO 3: Make the metadata file have the same name as the pdf or attachment file and Remove .pdf extention.
 // TODO 4: Make the attachmetn download loop more efficiant. <-- done.
-// TODO 5: Check the error folder mover.
+// TODO 5: Check the error folder mover. <-- Working and done.
 // TODO 6: Stramline the code.
 // TODO 7: Write summeries.
+// TODO 8: Create a way to move files to error folder and forward the mail if the file attachments are not accepted.
+// TODO 9: Make a internet connection checker.
 
 // Aplication title just for fun.
 WriteLogClass.WriteToLog(3, "Starting DEA ....");
@@ -16,6 +19,9 @@ WriteLogClass.WriteToLog(3, "Starting DEA ....");
 // Check for the attachment download folder and the log folder. Then creates the folders if they're missing.
 GraphHelper.CheckFolders("none");
 WriteLogClass.WriteToLog(3, "Checking main folders ....");
+
+// Clean the main download folder.
+FolderCleanerClass.GetFolders(GraphHelper.CheckFolders("Download"));
 
 // Getting the Graph and checking the settings for Graph.
 var appConfig = LoadAppSettings();
