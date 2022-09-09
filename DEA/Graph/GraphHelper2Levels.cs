@@ -1,12 +1,12 @@
 ﻿using Microsoft.Graph;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using DEA;
 using ReadSettings;
 using WriteLog;
 using FolderCleaner;
 using GetRecipientEmail; // Might need it later.
 using CreateMetadataFile; // Might need to use this later so leaving it.
-
 
 namespace DEA2Levels
 {
@@ -201,13 +201,39 @@ namespace DEA2Levels
                                                     string TrueAttachmentName = TrueAttachmentProps.Name.Replace(@"\", " ").Replace("/", " "); ;
                                                     byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
-                                                    if (TruAttachmentBytes.Length < 7168)
+                                                    // Extracts the extention of the attachment file.
+                                                    var AttExtention = Path.GetExtension(TrueAttachmentName);
+
+                                                    // Check the name for "\", "/", and "c:".
+                                                    // If matched name is passed through the below function to normalize it.
+                                                    Regex MatchChar = new Regex(@"[\\\/c:]");
+
+                                                    if (MatchChar.IsMatch(TrueAttachmentName.ToLower()))
+                                                    {
+                                                        Regex ExtractEnd = new Regex(@"[EPC]{3}[_]{1}[0-9]+[_]{1}[0-9]+[_]{1}[0-9]+[\.]{1}[a-z]{3}$");
+
+                                                        if (ExtractEnd.IsMatch(TrueAttachmentName))
+                                                        {
+                                                            var ExtName = ExtractEnd.Match(TrueAttachmentName);
+
+                                                            if (ExtName.Success)
+                                                            {
+                                                                TrueAttachmentName = ExtName.Groups[0].Value;
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            TrueAttachmentName = TrueAttachmentName.Replace(@"\", " ").Replace("/", " ");
+                                                        }
+                                                    }
+
+                                                    if (TruAttachmentBytes.Length < 7168 && AttExtention != ".pdf")
                                                     {
                                                         WriteLogClass.WriteToLog(3, $"Attachment size {TruAttachmentBytes.Length} too small ... skipping to the next file ....");
                                                         continue;
                                                     }
                                                     
-                                                    if (TruAttachmentBytes.Length > 7168)
+                                                    if (TruAttachmentBytes.Length > 7168 || (TruAttachmentBytes.Length < 7168 && AttExtention == ".pdf"))
                                                     {
                                                         WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 

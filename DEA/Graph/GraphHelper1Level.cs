@@ -1,5 +1,6 @@
 ﻿using Microsoft.Graph;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using DEA;
 using ReadSettings;
 using WriteLog;
@@ -140,17 +141,44 @@ namespace DEAHelper1Leve
 
                                                 // Details of the attachment.
                                                 var TrueAttachmentProps = (FileAttachment)TrueAttachment;
-                                                string TrueAttachmentName = TrueAttachmentProps.Name.Replace(@"\", " ").Replace("/", " ");
+                                                string TrueAttachmentName = TrueAttachmentProps.Name;
                                                 byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
-                                                if (TruAttachmentBytes.Length < 7168)
+                                                // Extracts the extention of the attachment file.
+                                                var AttExtention = Path.GetExtension(TrueAttachmentName);
+
+                                                // Check the name for "\", "/", and "c:".
+                                                // If matched name is passed through the below function to normalize it.
+                                                Regex MatchChar = new Regex(@"[\\\/c:]");
+
+                                                if (MatchChar.IsMatch(TrueAttachmentName.ToLower()))
+                                                {
+                                                    Regex ExtractEnd = new Regex(@"[EPC]{3}[_]{1}[0-9]+[_]{1}[0-9]+[_]{1}[0-9]+[\.]{1}[a-z]{3}$");
+                                                    
+                                                    if (ExtractEnd.IsMatch(TrueAttachmentName))
+                                                    {
+                                                        var ExtName = ExtractEnd.Match(TrueAttachmentName);
+
+                                                        if (ExtName.Success)
+                                                        {
+                                                            TrueAttachmentName = ExtName.Groups[0].Value;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        TrueAttachmentName = TrueAttachmentName.Replace(@"\", " ").Replace("/", " ");
+                                                    }
+                                                }
+
+                                                if (TruAttachmentBytes.Length < 7168 && AttExtention != ".pdf")
                                                 {
                                                     WriteLogClass.WriteToLog(3, $"Attachment size {TruAttachmentBytes.Length} too small ... skipping to the next file ....");
+                                                    WriteLogClass.WriteToLog(3, $"Attachment name {TrueAttachmentName}");
                                                     continue;
                                                 }
 
                                                 // Saves the file to the local hard disk.
-                                                if (TruAttachmentBytes.Length > 7168)
+                                                if (TruAttachmentBytes.Length > 7168 || (TruAttachmentBytes.Length < 7168 && AttExtention == ".pdf"))
                                                 {
                                                     WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 
@@ -158,7 +186,7 @@ namespace DEAHelper1Leve
                                                     GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, TrueAttachmentName, TruAttachmentBytes);
 
                                                     WriteLogClass.WriteToLog(3, $"Downloaded attachments from {Message.Subject}   ....");
-
+                                                    WriteLogClass.WriteToLog(3, $"Attachment name {TrueAttachmentName}");
                                                     // Creating the metdata file.
                                                     //var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email, PathFullDownloadFolder, TrueAttachmentName);
                                                     var FileFlag = true;
