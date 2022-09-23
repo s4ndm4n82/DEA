@@ -242,7 +242,7 @@ namespace DEA
                     }
                     else
                     {
-                        MailComment = "Hi,<br /><b>Please do not reply to this email</b><br />Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg or .csv.";
+                        MailComment = "Hi,<br /><b>Please do not reply to this email</b><br />Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
                     }
 
                     // Recipient setup for the mail header.
@@ -296,7 +296,7 @@ namespace DEA
                     }
                     else
                     {
-                        MailComment = "Hi,<br /><b>Please do not reply to this email</b><br />Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg or .csv.";
+                        MailComment = "Hi,<br /><b>Please do not reply to this email</b><br />Below email's attachment file type is not accepted. Please send attachments as .pdf or .jpg.";
                     }
 
                     // Recipient setup for the mail header.
