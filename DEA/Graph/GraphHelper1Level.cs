@@ -145,7 +145,7 @@ namespace DEAHelper1Leve
                                                 byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
                                                 // Extracts the extention of the attachment file.
-                                                var AttExtention = Path.GetExtension(TrueAttachmentName);
+                                                var AttExtention = Path.GetExtension(TrueAttachmentName).ToLower();
 
                                                 // Check the name for "\", "/", and "c:".
                                                 // If matched name is passed through the below function to normalize it.
@@ -170,7 +170,7 @@ namespace DEAHelper1Leve
                                                     }
                                                 }
 
-                                                if (TruAttachmentBytes.Length < 7168 && AttExtention != ".pdf")
+                                                if (TruAttachmentBytes.Length < 10240 && AttExtention != ".pdf")
                                                 {
                                                     WriteLogClass.WriteToLog(3, $"Attachment size {TruAttachmentBytes.Length} too small ... skipping to the next file ....");
                                                     WriteLogClass.WriteToLog(3, $"Attachment name {TrueAttachmentName}");
@@ -178,7 +178,7 @@ namespace DEAHelper1Leve
                                                 }
 
                                                 // Saves the file to the local hard disk.
-                                                if (TruAttachmentBytes.Length > 7168 || (TruAttachmentBytes.Length < 7168 && AttExtention == ".pdf"))
+                                                if (TruAttachmentBytes.Length > 10240 || (TruAttachmentBytes.Length < 10240 && AttExtention == ".pdf"))
                                                 {
                                                     WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 

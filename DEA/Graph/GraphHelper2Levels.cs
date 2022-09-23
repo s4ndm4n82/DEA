@@ -66,18 +66,6 @@ namespace DEA2Levels
                     Console.WriteLine("Excption Thrown: {0}", ex.Message);
                 }*/
 
-                /*var FilePath = @"F:\Users\SiNUX\Development\Repo Clones\s4ndm4n82\DEA\DEA\bin\Debug\net6.0";
-
-                CreateMetaDataXml.GetToEmail4Xml(graphClient, "AQMkADMzADRjYmMyZi05MzdkLTQxZGItODdhZi0zYjZhOGJlOGM2YWUALgAAA_pAcT3ZzxpDsmoc2Z1vKDABAIqHRYfBJYdInlpefO57fJwAAAIBUwAAAA=="
-                                                , "AQMkADMzADRjYmMyZi05MzdkLTQxZGItODdhZi0zYjZhOGJlOGM2YWUALgAAA_pAcT3ZzxpDsmoc2Z1vKDABAIqHRYfBJYdInlpefO57fJwAAAIBVgAAAA=="
-                                                , null!
-                                                , "AAMkADMzNGNiYzJmLTkzN2QtNDFkYi04N2FmLTNiNmE4YmU4YzZhZQBGAAAAAADqQHE92c8aQ7JqHNmdbygwBwCKh0WHwSWHSJ5aXnzue3ycAAAAAAFWAACKh0WHwSWHSJ5aXnzue3ycAAA-BwV8AAA="
-                                                , "accounting@efakturamottak.no"
-                                                , FilePath);
-
-                WriteLogClass.WriteToLog(3, $"Creating XML funtion called stop the program from here ....");
-                Thread.Sleep(1000000);*/
-
                 WriteLogClass.WriteToLog(3, $"Processing Email {_Email} ....");
 
                 //Top level of mail boxes like user inbox.
@@ -202,7 +190,7 @@ namespace DEA2Levels
                                                     byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
                                                     // Extracts the extention of the attachment file.
-                                                    var AttExtention = Path.GetExtension(TrueAttachmentName);
+                                                    var AttExtention = Path.GetExtension(TrueAttachmentName).ToLower();
 
                                                     // Check the name for "\", "/", and "c:".
                                                     // If matched name is passed through the below function to normalize it.
@@ -227,13 +215,13 @@ namespace DEA2Levels
                                                         }
                                                     }
 
-                                                    if (TruAttachmentBytes.Length < 7168 && AttExtention != ".pdf")
+                                                    if (TruAttachmentBytes.Length < 10240 && AttExtention != ".pdf")
                                                     {
                                                         WriteLogClass.WriteToLog(3, $"Attachment size {TruAttachmentBytes.Length} too small ... skipping to the next file ....");
                                                         continue;
                                                     }
                                                     
-                                                    if (TruAttachmentBytes.Length > 7168 || (TruAttachmentBytes.Length < 7168 && AttExtention == ".pdf"))
+                                                    if (TruAttachmentBytes.Length > 10240 || (TruAttachmentBytes.Length < 10240 && AttExtention == ".pdf"))
                                                     {
                                                         WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 
