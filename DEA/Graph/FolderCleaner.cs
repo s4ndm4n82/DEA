@@ -10,9 +10,9 @@ namespace FolderCleaner
         {
             if (Directory.Exists(FolderPath))
             {
-                var CleaningFolderName = FolderPath.Split(Path.DirectorySeparatorChar).Last();
+                var CleaningFolderName = Directory.GetParent(Path.GetDirectoryName(FolderPath)!);             
 
-                WriteLogClass.WriteToLog(3, $"Cleaning folder path {CleaningFolderName}");
+                WriteLogClass.WriteToLog(3, $"Cleaning folder path {CleaningFolderName!.FullName} ....");
 
                 string[] FolderList = Directory.GetDirectories(FolderPath, "*.*", SearchOption.AllDirectories);
 
@@ -30,6 +30,7 @@ namespace FolderCleaner
                 }
                 catch (Exception ex)
                 {
+                    WriteLogClass.WriteToLog(3, $"Path: {FolderPath}");
                     WriteLogClass.WriteToLog(2, $"Exception at folder creation in folder cleaner class: {ex.Message}");
                 }
                 
@@ -45,22 +46,32 @@ namespace FolderCleaner
                     if (Directory.GetFiles(_Folder, "*.*", SearchOption.AllDirectories).Length == 0)
                     {
                         try
-                        {
-                            var RmvFolderName = _Folder.Split(Path.DirectorySeparatorChar).Last();
-                            Regex LastFolderNameMatch = new Regex(@"[0-9]{10}");
+                        {   
+                            var RmvFolderPath = Directory.GetParent(_Folder);
+                            var RmvFolderName = RmvFolderPath!.FullName.Split(Path.DirectorySeparatorChar).Last();
+                            Regex LastFolderNameMatch = new Regex(@"Download");
 
-                            if (LastFolderNameMatch.IsMatch(RmvFolderName))
+                            if (!LastFolderNameMatch.IsMatch(RmvFolderName))
                             {
-                                Directory.Delete(_Folder, false);
-
+                                Directory.Delete(RmvFolderPath.FullName,true);
                                 WriteLogClass.WriteToLog(3, $"Folder {RmvFolderName} .... deleted");
-                            }                            
+                            }
+                            else
+                            {
+                                var RmvdFromDownload = _Folder.Split(Path.DirectorySeparatorChar).Last();
+                                Directory.Delete(_Folder, false);
+                                WriteLogClass.WriteToLog(3, $"Cleaning {RmvdFromDownload} ....");
+                            }
                         }
                         catch (IOException ex)
                         {
                             WriteLogClass.WriteToLog(2, $"Exception at folder delete: {ex.Message}");
                         }
 
+                    }
+                    else
+                    {
+                        WriteLogClass.WriteToLog(3, $"Folder not empty .... not deleted");
                     }
                 }
             }
