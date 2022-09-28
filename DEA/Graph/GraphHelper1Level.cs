@@ -103,7 +103,9 @@ namespace DEAHelper1Leve
                                     var DestinationFolderPath = Path.Combine(MakeDestinationFolderPath);
 
                                     // Calls the folder cleaner to remove empty folders.
-                                    FolderCleanerClass.GetFolders(DestinationFolderPath);
+                                    string[] MakeRemoveFolderPath = { ImportFolderPath, _Email, FirstFolderName };
+                                    var RemoveFolderPath = Path.Combine(MakeRemoveFolderPath);
+                                    FolderCleanerClass.GetFolders(RemoveFolderPath);
 
                                     // Variable used to store all the accepted extentions.
                                     string[] AcceptedExtentions = ConfigParam.AllowedExtentions;
@@ -258,7 +260,7 @@ namespace DEAHelper1Leve
                                         {
                                             WriteLogClass.WriteToLog(1, $"Exception at attachment download area 2level: {ex.Message}");
                                         }
-                                    }                                    
+                                    }
                                 }
                                 else
                                 {
@@ -322,7 +324,7 @@ namespace DEAHelper1Leve
             }    
             catch (Exception ex)
             {
-                WriteLogClass.WriteToLog(1, $"Exception at end of main foreach 2level: {ex.Message}");
+                WriteLogClass.WriteToLog(1, $"Exception at end of main foreach 1level: {ex.Message}");
             }
         }
     }

@@ -15,10 +15,10 @@ using Microsoft.Extensions.Configuration;
 
 // Aplication title just for fun.
 WriteLogClass.WriteToLog(3, "Starting DEA ....");
-FolderCleanerClass.GetFolders(@"D:\Import\accounting03@efakturamottak.no\Direct\11096bank@efakturamottak.no");
+//FolderCleanerClass.GetFolders(@"D:\Import\accounting03@efakturamottak.no\Direct");
 
 // Check for the attachment download folder and the log folder. Then creates the folders if they're missing.
-/*GraphHelper.CheckFolders("none");
+GraphHelper.CheckFolders("none");
 WriteLogClass.WriteToLog(3, "Checking main folders ....");
 
 // Clean the main download folder.
@@ -109,4 +109,4 @@ static IConfigurationRoot? LoadAppSettings()
      {
          return appConfigUs;
      }
-}*/
+}

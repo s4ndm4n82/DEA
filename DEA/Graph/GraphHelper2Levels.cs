@@ -253,7 +253,7 @@ namespace DEA2Levels
                                                             }
                                                         }
                                                     }
-                                                }                                               
+                                                }
                                             }
                                             else
                                             {
@@ -302,7 +302,7 @@ namespace DEA2Levels
                                             {
                                                 WriteLogClass.WriteToLog(1, $"Exception at attachment download area 2level: {ex.Message}");
                                             }
-                                        }                                        
+                                        }
                                     }
                                     else
                                     {
