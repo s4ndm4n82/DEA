@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using WriteLog;
 
 namespace FolderCleaner
@@ -13,6 +12,7 @@ namespace FolderCleaner
                 var LastFolderName = FolderPath.Split(Path.DirectorySeparatorChar).Last();
 
                 Regex LastFolderNameMatch = new Regex(@"[0-9a-z]+@efakturamottak\.no");
+
                 if (LastFolderNameMatch.IsMatch(LastFolderName.ToLower()))
                 {
                     var CleaningFolderPath = Directory.GetParent(FolderPath);

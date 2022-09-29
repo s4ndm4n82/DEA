@@ -203,22 +203,21 @@ namespace DEAHelper1Leve
 
                                     // Directory and file existence check. If not exists it will not return anything.
                                     string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders("Download")); // Use the main path not the entire download path
-                                    string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder); // This causs an erro when the file is not there.
-                                    var FileFlag = true;
+                                    string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder); // This causs an erro when the file is not there.                                    
 
-                                    if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0 && FileFlag && Count == AcceptedExtentions.Length)
+                                    if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0 && Count == AcceptedExtentions.Length)
                                     {
                                         WriteLogClass.WriteToLog(3, "Moving downloaded files to local folder ....");
 
                                         // Moves the downloaded files to destination folder. This would create the folder path if it's missing.
                                         if (GraphHelper.MoveFolder(PathFullDownloadFolder, DestinationFolderPath))
                                         {
-                                            WriteLogClass.WriteToLog(3, "File moved successfully ....");
+                                            WriteLogClass.WriteToLog(3, "File/s moved successfully ....");
                                             MoveToExport = true;
                                         }
                                         else
                                         {
-                                            WriteLogClass.WriteToLog(3, "File was not moved successfully ....");
+                                            WriteLogClass.WriteToLog(3, "File/s was/were not moved successfully ....");
                                         }
                                     }
 
@@ -260,7 +259,7 @@ namespace DEAHelper1Leve
                                         }
                                         catch (Exception ex)
                                         {
-                                            WriteLogClass.WriteToLog(1, $"Exception at attachment download area 2level: {ex.Message}");
+                                            WriteLogClass.WriteToLog(1, $"Exception at attachment download area 1level: {ex.Message}");
                                         }
                                     }
                                 }
