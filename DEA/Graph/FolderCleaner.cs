@@ -9,14 +9,21 @@ namespace FolderCleaner
         public static void GetFolders(string FolderPath)
         {
             if (Directory.Exists(FolderPath))
-            {
-                var CleaningFolderName = Directory.GetParent(Path.GetDirectoryName(FolderPath)!);             
+            {                
+                var LastFolderName = FolderPath.Split(Path.DirectorySeparatorChar).Last();
 
-                WriteLogClass.WriteToLog(3, $"Cleaning folder path {CleaningFolderName!.FullName} ....");
+                Regex LastFolderNameMatch = new Regex(@"[0-9a-z]+@efakturamottak\.no");
+                if (LastFolderNameMatch.IsMatch(LastFolderName.ToLower()))
+                {
+                    var CleaningFolderPath = Directory.GetParent(FolderPath);
+                    FolderPath = CleaningFolderPath!.FullName;
+                }              
+
+                WriteLogClass.WriteToLog(3, $"Cleaning folder path {FolderPath} ....");
 
                 string[] FolderList = Directory.GetDirectories(FolderPath, "*.*", SearchOption.AllDirectories);
 
-                DeleteFolders(FolderList);
+                DeleteFolders(FolderList, LastFolderName);
             }
             else
             {
@@ -24,7 +31,7 @@ namespace FolderCleaner
             }
         }
 
-        private static void DeleteFolders(string[] _FolderList)
+        private static void DeleteFolders(string[] _FolderList, string _LastFolder)
         {
             foreach (string _Folder in _FolderList)
             {
@@ -37,7 +44,7 @@ namespace FolderCleaner
                             var RmvFolderName = _Folder.Split(Path.DirectorySeparatorChar).Last();
                             Regex LastFolderNameMatch = new Regex(@"[0-9a-z]+@efakturamottak\.no");
 
-                            if (LastFolderNameMatch.IsMatch(RmvFolderName))
+                            if (LastFolderNameMatch.IsMatch(_LastFolder.ToLower()))
                             {
                                 Directory.Delete(_Folder,true);
                                 WriteLogClass.WriteToLog(3, $"Folder {RmvFolderName} .... deleted");
