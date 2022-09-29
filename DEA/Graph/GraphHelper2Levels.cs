@@ -66,18 +66,6 @@ namespace DEA2Levels
                     Console.WriteLine("Excption Thrown: {0}", ex.Message);
                 }*/
 
-                /*var FilePath = @"F:\Users\SiNUX\Development\Repo Clones\s4ndm4n82\DEA\DEA\bin\Debug\net6.0";
-
-                CreateMetaDataXml.GetToEmail4Xml(graphClient, "AQMkADMzADRjYmMyZi05MzdkLTQxZGItODdhZi0zYjZhOGJlOGM2YWUALgAAA_pAcT3ZzxpDsmoc2Z1vKDABAIqHRYfBJYdInlpefO57fJwAAAIBUwAAAA=="
-                                                , "AQMkADMzADRjYmMyZi05MzdkLTQxZGItODdhZi0zYjZhOGJlOGM2YWUALgAAA_pAcT3ZzxpDsmoc2Z1vKDABAIqHRYfBJYdInlpefO57fJwAAAIBVgAAAA=="
-                                                , null!
-                                                , "AAMkADMzNGNiYzJmLTkzN2QtNDFkYi04N2FmLTNiNmE4YmU4YzZhZQBGAAAAAADqQHE92c8aQ7JqHNmdbygwBwCKh0WHwSWHSJ5aXnzue3ycAAAAAAFWAACKh0WHwSWHSJ5aXnzue3ycAAA-BwV8AAA="
-                                                , "accounting@efakturamottak.no"
-                                                , FilePath);
-
-                WriteLogClass.WriteToLog(3, $"Creating XML funtion called stop the program from here ....");
-                Thread.Sleep(1000000);*/
-
                 WriteLogClass.WriteToLog(3, $"Processing Email {_Email} ....");
 
                 //Top level of mail boxes like user inbox.
@@ -142,9 +130,6 @@ namespace DEA2Levels
                                     // If the file attached variable is true then the download will start.
                                     if (HasFileAttched == true)
                                     {
-                                        // Counting the aount of messages with attachments. To loop through below.
-                                        var AttachmentCount = Message.Attachments.Count;
-
                                         // Assigning display names.                                            
                                         var FirstFolderName = FirstSubFolderID.DisplayName;
                                         var SecondFolderName = SecondSubFolderID.DisplayName;
@@ -168,9 +153,14 @@ namespace DEA2Levels
                                         // Export switch
                                         var MoveToExport = false;
 
+                                        // Foreach count
+                                        int Count = 0;
+
                                         // For loop to go through all the extentions from extentions variable.
                                         foreach (var AcceptedExtention in AcceptedExtentions)
                                         {
+                                            Count++; // Count the for each execution once complete triggers the move.
+
                                             var AcceptedExtensionCollection = Message.Attachments.Where(x => x.Name.ToLower().EndsWith(AcceptedExtention));
 
                                             if (AcceptedExtensionCollection.Any(y => y.Name.ToLower().Contains(AcceptedExtention)))
@@ -202,7 +192,7 @@ namespace DEA2Levels
                                                     byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
                                                     // Extracts the extention of the attachment file.
-                                                    var AttExtention = Path.GetExtension(TrueAttachmentName);
+                                                    var AttExtention = Path.GetExtension(TrueAttachmentName).ToLower();
 
                                                     // Check the name for "\", "/", and "c:".
                                                     // If matched name is passed through the below function to normalize it.
@@ -227,13 +217,13 @@ namespace DEA2Levels
                                                         }
                                                     }
 
-                                                    if (TruAttachmentBytes.Length < 7168 && AttExtention != ".pdf")
+                                                    if (TruAttachmentBytes.Length < 10240 && AttExtention != ".pdf")
                                                     {
                                                         WriteLogClass.WriteToLog(3, $"Attachment size {TruAttachmentBytes.Length} too small ... skipping to the next file ....");
                                                         continue;
                                                     }
                                                     
-                                                    if (TruAttachmentBytes.Length > 7168 || (TruAttachmentBytes.Length < 7168 && AttExtention == ".pdf"))
+                                                    if (TruAttachmentBytes.Length > 10240 || (TruAttachmentBytes.Length < 10240 && AttExtention == ".pdf"))
                                                     {
                                                         WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 
@@ -243,33 +233,34 @@ namespace DEA2Levels
                                                         WriteLogClass.WriteToLog(3, $"Downloaded attachments from {Message.Subject}   ....");
 
                                                         // Creating the metdata file.
-                                                        //var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email, PathFullDownloadFolder, TrueAttachmentName);
-                                                        var FileFlag = true;
-
-                                                        // Directory and file existence check. If not exists it will not return anything.
-                                                        string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders("Download")); // Use the main path not the entire download path
-                                                        string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder); // This causs an erro when the file is not there.
-
-                                                        if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0 && FileFlag)
-                                                        {
-                                                            WriteLogClass.WriteToLog(3, "Moving downloaded files to local folder ....");
-                                                            // Moves the downloaded files to destination folder. This would create the folder path if it's missing.
-                                                            if (GraphHelper.MoveFolder(PathFullDownloadFolder, DestinationFolderPath))
-                                                            {
-                                                                WriteLogClass.WriteToLog(3, "File moved successfully ....");
-                                                                MoveToExport = true;
-                                                            }
-                                                            else
-                                                            {
-                                                                WriteLogClass.WriteToLog(3, "File was not moved successfully ....");
-                                                            }
-                                                        }
+                                                        //var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email, PathFullDownloadFolder, TrueAttachmentName);                                                        
                                                     }
-                                                }                                               
+                                                }
                                             }
                                             else
                                             {
                                                 continue;
+                                            }
+                                        }
+                                        
+                                        // Directory and file existence check. If not exists it will not return anything.
+                                        string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders("Download")); // Use the main path not the entire download path
+                                        string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder); // This causs an erro when the file is not there.
+                                        var FileFlag = true;
+
+                                        if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0 && FileFlag && Count == AcceptedExtentions.Length)
+                                        {
+                                            WriteLogClass.WriteToLog(3, "Moving downloaded files to local folder ....");
+
+                                            // Moves the downloaded files to destination folder. This would create the folder path if it's missing.
+                                            if (GraphHelper.MoveFolder(PathFullDownloadFolder, DestinationFolderPath))
+                                            {
+                                                WriteLogClass.WriteToLog(3, "File moved successfully ....");
+                                                MoveToExport = true;
+                                            }
+                                            else
+                                            {
+                                                WriteLogClass.WriteToLog(3, "File was not moved successfully ....");
                                             }
                                         }
 
@@ -314,7 +305,7 @@ namespace DEA2Levels
                                             {
                                                 WriteLogClass.WriteToLog(1, $"Exception at attachment download area 2level: {ex.Message}");
                                             }
-                                        }                                        
+                                        }
                                     }
                                     else
                                     {
