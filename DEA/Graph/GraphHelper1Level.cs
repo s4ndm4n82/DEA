@@ -84,11 +84,11 @@ namespace DEAHelper1Leve
                             WriteLogClass.WriteToLog(3, $"Processing folder path {FirstSubFolderID.DisplayName}");
 
                             // Looping through the messages.
-                            foreach (var Message in GetMessageAttachments)
+                            foreach (var Message in GetMessageAttachments.Where(att => att.HasAttachments == true))
                             {
                                 // If the file attached variable is true then the download will start.
-                                if (Message.HasAttachments == true)
-                                {
+                                /*if (Message.HasAttachments == true)
+                                {*/
                                     // Assigning display names.                                            
                                     var FirstFolderName = FirstSubFolderID.DisplayName;
 
@@ -117,95 +117,86 @@ namespace DEAHelper1Leve
                                     // For loop to go through all the extentions from extentions variable.
                                     foreach(var AcceptedExtention in AcceptedExtentions)
                                     {
-                                        Count++; // Count the for each execution once complete triggers the move.
+                                        //var AcceptedExtensionCollection = Message.Attachments.Where(x => x.Name.ToLower().EndsWith(AcceptedExtention));
 
-                                        var AcceptedExtensionCollection = Message.Attachments.Where(x => x.Name.ToLower().EndsWith(AcceptedExtention));
+                                        // FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
+                                        // This has to be called here. Don't put it within the for loop or it will start calling this
+                                        // each time and make folder for each file. Also calling this out side of the extentions FOR loop.
+                                        // causes an exception error at the "DownloadFileExistTest" test due file not been available.
+                                        PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders("Download"), GraphHelper.FolderNameRnd(10));
 
-                                        if (AcceptedExtensionCollection.Any(y => y.Name.ToLower().Contains(AcceptedExtention)))
+                                        foreach (var Attachment in Message.Attachments.Where(x => x.Name.ToLower().EndsWith(AcceptedExtention) && x.Size > 10240 || (x.Name.ToLower().EndsWith(".pdf") && x.Size < 10240)))
                                         {
                                             WriteLogClass.WriteToLog(3, "Collection check succeeded ...");
 
-                                            // FolderNameRnd creates a 10 digit folder name. CheckFolder returns the download path.
-                                            // This has to be called here. Don't put it within the for loop or it will start calling this
-                                            // each time and make folder for each file. Also calling this out side of the extentions FOR loop.
-                                            // causes an exception error at the "DownloadFileExistTest" test due file not been available.
-                                            PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders("Download"), GraphHelper.FolderNameRnd(10));
+                                            // Should mark and download the itemattacment which is the correct attachment.
+                                            var TrueAttachment = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
+                                                            .ChildFolders[$"{FirstSubFolderID.Id}"]
+                                                            .Messages[$"{Message.Id}"]
+                                                            .Attachments[$"{Attachment.Id}"]
+                                                            .Request()
+                                                            .GetAsync();
 
-                                            foreach (var Attachment in AcceptedExtensionCollection)
-                                            {   
-                                                // Should mark and download the itemattacment which is the correct attachment.
-                                                var TrueAttachment = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
-                                                                .ChildFolders[$"{FirstSubFolderID.Id}"]
-                                                                .Messages[$"{Message.Id}"]
-                                                                .Attachments[$"{Attachment.Id}"]
-                                                                .Request()
-                                                                .GetAsync();
+                                            // Details of the attachment.
+                                            var TrueAttachmentProps = (FileAttachment)TrueAttachment;
+                                            string TrueAttachmentName = TrueAttachmentProps.Name;
+                                            byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
-                                                // Details of the attachment.
-                                                var TrueAttachmentProps = (FileAttachment)TrueAttachment;
-                                                string TrueAttachmentName = TrueAttachmentProps.Name;
-                                                byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
+                                            // Extracts the extention of the attachment file.
+                                            var AttExtention = Path.GetExtension(TrueAttachmentName).ToLower();
 
-                                                // Extracts the extention of the attachment file.
-                                                var AttExtention = Path.GetExtension(TrueAttachmentName).ToLower();
+                                            // Check the name for "\", "/", and "c:".
+                                            // If matched name is passed through the below function to normalize it.
+                                            Regex MatchChar = new Regex(@"[\\\/c:]");
 
-                                                // Check the name for "\", "/", and "c:".
-                                                // If matched name is passed through the below function to normalize it.
-                                                Regex MatchChar = new Regex(@"[\\\/c:]");
+                                            if (MatchChar.IsMatch(TrueAttachmentName.ToLower()))
+                                            {
+                                                Regex ExtractEnd = new Regex(@"[EPC]{3}[_]{1}[0-9]+[_]{1}[0-9]+[_]{1}[0-9]+[\.]{1}[a-z]{3}$");
 
-                                                if (MatchChar.IsMatch(TrueAttachmentName.ToLower()))
+                                                if (ExtractEnd.IsMatch(TrueAttachmentName))
                                                 {
-                                                    Regex ExtractEnd = new Regex(@"[EPC]{3}[_]{1}[0-9]+[_]{1}[0-9]+[_]{1}[0-9]+[\.]{1}[a-z]{3}$");
-                                                    
-                                                    if (ExtractEnd.IsMatch(TrueAttachmentName))
-                                                    {
-                                                        var ExtName = ExtractEnd.Match(TrueAttachmentName);
+                                                    var ExtName = ExtractEnd.Match(TrueAttachmentName);
 
-                                                        if (ExtName.Success)
-                                                        {
-                                                            TrueAttachmentName = ExtName.Groups[0].Value;
-                                                        }
-                                                    }
-                                                    else
+                                                    if (ExtName.Success)
                                                     {
-                                                        TrueAttachmentName = TrueAttachmentName.Replace(@"\", " ").Replace("/", " ");
+                                                        TrueAttachmentName = ExtName.Groups[0].Value;
                                                     }
                                                 }
-
-                                                if (TruAttachmentBytes.Length < 10240 && AttExtention != ".pdf")
+                                                else
                                                 {
-                                                    WriteLogClass.WriteToLog(3, $"Attachment size {TruAttachmentBytes.Length} too small ... skipping to the next file ....");
-                                                    WriteLogClass.WriteToLog(3, $"Attachment name {TrueAttachmentName}");
-                                                    continue;
-                                                }
-
-                                                // Saves the file to the local hard disk.
-                                                if (TruAttachmentBytes.Length > 10240 || (TruAttachmentBytes.Length < 10240 && AttExtention == ".pdf"))
-                                                {
-                                                    WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
-
-                                                    // Saves the file to the local hard disk.
-                                                    GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, TrueAttachmentName, TruAttachmentBytes);
-
-                                                    WriteLogClass.WriteToLog(3, $"Downloaded attachments from {Message.Subject}   ....");
-                                                    WriteLogClass.WriteToLog(3, $"Attachment name {TrueAttachmentName}");
-
-                                                    // Creating the metdata file.
-                                                    //var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email, PathFullDownloadFolder, TrueAttachmentName);                                                    
+                                                    TrueAttachmentName = TrueAttachmentName.Replace(@"\", " ").Replace("/", " ");
                                                 }
                                             }
+
+                                            /*if (TruAttachmentBytes.Length < 10240 && AttExtention != ".pdf")
+                                            {
+                                                WriteLogClass.WriteToLog(3, $"Attachment size {TruAttachmentBytes.Length} too small ... skipping to the next file ....");
+                                                WriteLogClass.WriteToLog(3, $"Attachment name {TrueAttachmentName}");
+                                                continue;
+                                            }*/
+
+                                            // Saves the file to the local hard disk.
+                                            /*if (TruAttachmentBytes.Length > 10240 || (TruAttachmentBytes.Length < 10240 && AttExtention == ".pdf"))
+                                            {*/
+                                                Count++; // Count the for each execution once complete triggers the move.
+
+                                                WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
+
+                                                // Saves the file to the local hard disk.
+                                                GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, TrueAttachmentName, TruAttachmentBytes);
+
+                                                WriteLogClass.WriteToLog(3, $"Downloaded attachments from {Message.Subject}   ....");
+                                                WriteLogClass.WriteToLog(3, $"Attachment name {TrueAttachmentName}");
+
+                                                // Creating the metdata file.
+                                                //var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email, PathFullDownloadFolder, TrueAttachmentName);                                                    
+                                            //}
                                         }
-                                        else
-                                        {
-                                            continue;
-                                        }                                        
                                     }
 
-                                    // Directory and file existence check. If not exists it will not return anything.
-                                    string[] DownloadFolderExistTest = System.IO.Directory.GetDirectories(GraphHelper.CheckFolders("Download")); // Use the main path not the entire download path
-                                    string[] DownloadFileExistTest = System.IO.Directory.GetFiles(PathFullDownloadFolder); // This causs an erro when the file is not there.                                    
+                                    WriteLogClass.WriteToLog(3, $"Counter value: {Count}");
 
-                                    if (DownloadFolderExistTest.Length != 0 && DownloadFileExistTest.Length != 0 && Count == AcceptedExtentions.Length)
+                                    if (Count > 0 && System.IO.Directory.Exists(PathFullDownloadFolder) && System.IO.Directory.EnumerateFiles(PathFullDownloadFolder, "*.*", SearchOption.AllDirectories).Any())
                                     {
                                         WriteLogClass.WriteToLog(3, "Moving downloaded files to local folder ....");
 
@@ -262,7 +253,7 @@ namespace DEAHelper1Leve
                                             WriteLogClass.WriteToLog(1, $"Exception at attachment download area 1level: {ex.Message}");
                                         }
                                     }
-                                }
+                                //}
                                 else
                                 {
                                     if (Message.HasAttachments == false)
