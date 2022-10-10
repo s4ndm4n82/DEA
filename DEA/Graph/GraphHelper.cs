@@ -82,17 +82,17 @@ namespace DEA
                 try
                 {
                     // Regex should match any email address that look like accounting2@efakturamottak.no.
-                    /*Regex EmailRegEx = new Regex(@"^accounting+(?=[0-9]{0,3}@[a-z]+[\.][a-z]{2,3})");
+                    Regex EmailRegEx = new Regex(@"^accounting+(?=[0-9]{0,3}@[a-z]+[\.][a-z]{2,3})");
                     if (EmailRegEx.IsMatch(Email))
-                    {*/
+                    {
                         // Calls the function for reading accounting emails for attachments.                        
                         await GraphHelper1LevelClass.GetEmailsAttacments1Level(graphClient!, Email);
-                    /*}
+                    }
                     else
                     {
                         // Calls the function to read ATC emails.
                         await GraphHelper2Levels.GetEmailsAttacmentsAccount(graphClient!, Email);
-                    }*/
+                    }
                 }
                 catch (Exception ex)
                 {
