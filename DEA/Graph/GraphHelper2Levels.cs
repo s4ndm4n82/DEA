@@ -181,12 +181,12 @@ namespace DEA2Levels
                                 // Moves the downloaded files to destination folder. This would create the folder path if it's missing.
                                 if (GraphHelper.MoveFolder(PathFullDownloadFolder, DestinationFolderPath))
                                 {
-                                    WriteLogClass.WriteToLog(3, "File moved successfully ....");
+                                    WriteLogClass.WriteToLog(3, "File/s moved successfully ....");
                                     MoveToExport = true;
                                 }
                                 else
                                 {
-                                    WriteLogClass.WriteToLog(3, "File was not moved successfully ....");
+                                    WriteLogClass.WriteToLog(3, "File/s was/were not moved successfully ....");
                                 }
                             }
 
