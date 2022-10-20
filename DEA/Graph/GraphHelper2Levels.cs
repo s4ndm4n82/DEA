@@ -127,7 +127,7 @@ namespace DEA2Levels
                             // causes an exception error at the "DownloadFileExistTest" test due file not been available.
                             PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders("Download"), GraphHelper.FolderNameRnd(10));
 
-                            if (Message.Attachments.Count() > 0)
+                            if (Message.Attachments.Count > 0)
                             {
                                 foreach (var Attachment in Message.Attachments.Where(x => AcceptedExtentions.Contains(Path.GetExtension(x.Name.ToLower())) && x.Size > 10240 || (x.Name.ToLower().EndsWith(".pdf") && x.Size < 10240)))
                                 {
