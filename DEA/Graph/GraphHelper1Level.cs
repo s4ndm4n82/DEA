@@ -223,7 +223,7 @@ namespace DEAHelper1Leve
                             }
                         }
 
-                        if (Message.Attachments.Count() == 0 || Count == 0)
+                        if (Message.Attachments.Count == 0 || Count == 0)
                         {
                             // Search for the subfolder named error.
                             var FolderSearchOption2 = new List<QueryOption>

@@ -146,7 +146,7 @@ namespace DEA2Levels
 
                                     // Details of the attachment.
                                     var TrueAttachmentProps = (FileAttachment)TrueAttachment;
-                                    string TrueAttachmentName = TrueAttachmentProps.Name.Replace(@"\", " ").Replace("/", " "); ;
+                                    string TrueAttachmentName = TrueAttachmentProps.Name.Replace(@"\", "").Replace("/", " ").Replace(":", "").Replace(";","");
                                     byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
                                     // Extracts the extention of the attachment file.
