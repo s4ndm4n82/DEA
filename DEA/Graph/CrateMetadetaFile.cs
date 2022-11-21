@@ -7,11 +7,11 @@ using System.Text.RegularExpressions;
 namespace CreateMetadataFile
 {
     internal class CreateMetaDataXml
-    {
-        public static bool WriteMetadataXml(string ToEmail, string SavePath)
+    {   
+        public static bool WriteMetadataXml(string ToEmail, string SavePath, string SaveFileName)
         {
             // TODO 1 : Create a funstion to get the to email address from emails and pass it to here.
-            var XmlSaveFile = Path.Combine(SavePath, "Metadata.xml");
+            var XmlSaveFile = Path.Combine(SavePath, SaveFileName);
             var XmlSaveSwitch = false;
 
             XmlWriterSettings WriterSettings = new XmlWriterSettings();
@@ -61,8 +61,8 @@ namespace CreateMetadataFile
             return XmlSaveSwitch;
         }
 
-        public static bool GetToEmail4Xml(GraphServiceClient graphClient, string SubFolderId1, string SubFolderId2, string SubFolderId3, string MessageID, string _Email, string _FolderPath)
-        {
+        public static bool GetToEmail4Xml(GraphServiceClient graphClient, string SubFolderId1, string SubFolderId2, string SubFolderId3, string MessageID, string _Email, string _FolderPath, string FileName)
+        {            
             var FileFlag = false;
             IEnumerable<InternetMessageHeader> ToEmails;
             Task<Message> GetToEmail;
@@ -111,7 +111,7 @@ namespace CreateMetadataFile
                         {
                             var PassEmail = ExtractedEmail.Value.ToLower();
                             WriteLogClass.WriteToLog(3, $"Recipient email {PassEmail} extracted ...");
-                            FileFlag = WriteMetadataXml(PassEmail, _FolderPath);
+                            FileFlag = WriteMetadataXml(PassEmail, _FolderPath, FileName);
                         }
                     }                    
                 }
