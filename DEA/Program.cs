@@ -3,6 +3,7 @@ using WriteLog;
 using FolderCleaner;
 using Microsoft.Extensions.Configuration;
 
+// TODO 0: Deal with exception that breaks the loop when an unsupported extention is met. Use the count variable to determin if the accepted or not.
 // TODO 1: Brake the main graph functions into smaller set of chuncks.
 // TODO 2: Change the usage of DEA.conf to app.conf (But I don't think it's needed. Bcause I use app.conf to stroe some very important data set.).
 // TODO 3: Make the metadata file have the same name as the pdf or attachment file and Remove .pdf extention.
