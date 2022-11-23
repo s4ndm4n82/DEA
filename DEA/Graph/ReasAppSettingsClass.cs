@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
 using WriteLog;
 
-namespace ReadSettings
+namespace ReadAppSettings
 {
-    internal class ReasSettingsClass
+    internal class ReadAppSettingsClass
     {
 
-        public class ReasSettingsObject
+        public class ReadAppSettingsObject
         {
             public Appsetting[]? AppSettings { get; set; }
             public Folderstoexclude[]? FoldersToExclude { get; set; }
