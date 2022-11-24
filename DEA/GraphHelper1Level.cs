@@ -61,7 +61,7 @@ namespace GraphHelper1Level
                     .Top(appSettings.MaxLoadEmails)
                     .GetAsync();
 
-                foreach (var FirstSubFolderID in FirstSubFolderIDs.Where(x => !string.IsNullOrWhiteSpace(x.Id) && !mainFolders.Contains(x.DisplayName) || !subFolders.Contains(x.DisplayName)))
+                foreach (var FirstSubFolderID in FirstSubFolderIDs.Where(x => !string.IsNullOrWhiteSpace(x.Id) && !mainFolders.Contains(x.DisplayName)).Where(y => !string.IsNullOrWhiteSpace(y.Id) && !subFolders.Contains(y.DisplayName)))
                 {
                     // Second level of subfolders under the inbox.
                     var GetMessageAttachments = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
@@ -79,11 +79,6 @@ namespace GraphHelper1Level
                         .Top(appSettings.MaxLoadEmails) // Increase this to 40                                    
                         .GetAsync();
 
-                    // Counts the with attachments.                    
-                    /*if (GetMessageAttachments.Count() > 0)
-                    {
-
-                    }*/
                     WriteLogClass.WriteToLog(3, $"Processing folder path {FirstSubFolderID.DisplayName}");
 
                     // Looping through the messages.

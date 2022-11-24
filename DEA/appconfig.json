@@ -2,7 +2,7 @@
   "AppSettings": [
     {
       "DateFilter": false,
-      "MaxLoadEmails": 4,
+      "MaxLoadEmails": 40,
       "UserAccounts": [
         "sandaruwan@efakturamottak.no"
       ],
@@ -20,11 +20,11 @@
   "FoldersToExclude": [
     {
       "MainEmailFolders": [
-        "Level 1",
-        "Level 3"
+        "Level 3",
+        "Level 2"        
       ],
       "SubEmailFolders": [
-        "Sub 1"
+        
       ]
     }    
   ]
