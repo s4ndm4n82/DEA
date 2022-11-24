@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using DEA;
-using ReadSettings;
+using ReadAppSettings;
 using WriteLog;
 using GetRecipientEmail;
 using FolderCleaner;
@@ -14,11 +14,15 @@ namespace DEAHelper1Leve
         public static async Task GetEmailsAttacments1Level([NotNull] GraphServiceClient graphClient, string _Email)
         {
             // Parameters read from the config files.
-            var ConfigParam = new ReadSettingsClass();
+            ReadAppSettingsClass.ReadAppSettingsObject readAppSettings = ReadAppSettingsClass.ReadAppConfig<ReadAppSettingsClass.ReadAppSettingsObject>();
 
-            bool DateSwitch = ConfigParam.DateFilter;
-            int MaxAmountOfEmails = ConfigParam.MaxLoadEmails;
-            string ImportFolderPath = Path.Combine(ConfigParam.ImportFolderLetter, ConfigParam.ImportFolderPath);
+            ReadAppSettingsClass.Appsetting appSettings = readAppSettings.AppSettings!.FirstOrDefault()!;
+            ReadAppSettingsClass.Folderstoexclude foldersToExclude = readAppSettings.FoldersToExclude!.FirstOrDefault()!;
+
+            string[] mainFolders = foldersToExclude.MainEmailFolders!;
+            string[] subFolders = foldersToExclude.SubEmailFolders!;
+
+            string ImportFolderPath = Path.Combine(appSettings.ImportFolderLetter!, appSettings.ImportFolderPath!);
 
             //var ImportFolderPath = @"D:\Import\"; //Path to import folder. 
 
@@ -29,7 +33,7 @@ namespace DEAHelper1Leve
             // TODO: 1. Enable one out query from below before server testing.
             List<QueryOption> SearchOptions;
 
-            if (DateSwitch)
+            if (appSettings.DateFilter)
             {
                 SearchOptions = new List<QueryOption>
                 {
@@ -54,10 +58,10 @@ namespace DEAHelper1Leve
                         fid.Id,
                         fid.DisplayName
                     })
-                    .Top(MaxAmountOfEmails)
+                    .Top(appSettings.MaxLoadEmails)
                     .GetAsync();
 
-                foreach (var FirstSubFolderID in FirstSubFolderIDs.Where(ids => !string.IsNullOrWhiteSpace(ids.Id)))
+                foreach (var FirstSubFolderID in FirstSubFolderIDs.Where(x => !string.IsNullOrWhiteSpace(x.Id) && !mainFolders.Contains(x.DisplayName) || !subFolders.Contains(x.DisplayName)))
                 {
                     // Second level of subfolders under the inbox.
                     var GetMessageAttachments = await graphClient.Users[$"{_Email}"].MailFolders["Inbox"]
@@ -72,7 +76,7 @@ namespace DEAHelper1Leve
                             gma.HasAttachments,
                             gma.Attachments
                         })
-                        .Top(MaxAmountOfEmails) // Increase this to 40                                    
+                        .Top(appSettings.MaxLoadEmails) // Increase this to 40                                    
                         .GetAsync();
 
                     // Counts the with attachments.                    
@@ -101,7 +105,7 @@ namespace DEAHelper1Leve
                         FolderCleanerClass.GetFolders(DestinationFolderPath);
 
                         // Variable used to store all the accepted extentions.
-                        string[] AcceptedExtentions = ConfigParam.AllowedExtentions;
+                        string[] AcceptedExtentions = appSettings.AllowedExtentions!;
 
                         // Initilizing the download folder path variable.
                         string PathFullDownloadFolder = string.Empty;
@@ -150,6 +154,10 @@ namespace DEAHelper1Leve
                                 if (MatchChar.IsMatch(TrueAttachmentName.ToLower()))
                                 {
                                     TrueAttachmentName = Path.GetFileName(TrueAttachmentName);
+                                }
+                                else
+                                {
+                                    TrueAttachmentName = Regex.Replace(TrueAttachmentName, @"[\,\:\;\\\/]+", "");
                                 }
 
                                 WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
