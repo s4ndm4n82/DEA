@@ -25,7 +25,7 @@ namespace ReadAppSettings
         public class Folderstoexclude
         {
             public string[]? MainEmailFolders { get; set; }
-            public object[]? SubEmailFolders { get; set; }
+            public string[]? SubEmailFolders { get; set; }
         }
 
         public static T ReadAppConfig<T>()
