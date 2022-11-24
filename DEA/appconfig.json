@@ -1,0 +1,29 @@
+{
+  "AppSettings": [
+    {
+      "DateFilter": false,
+      "MaxLoadEmails": 4,
+      "UserAccounts": [
+        "sandaruwan@efakturamottak.no"
+      ],
+      "ImportFolderLetter": "D:",
+      "ImportFolderPath": "Import",
+      "AllowedExtentions": [
+          ".jpg",
+          ".jpeg",
+          ".tiff",
+          ".png",
+          ".pdf" 
+      ]
+    }    
+  ],
+  "FoldersToExclude": [
+    {
+      "MainEmailFolders": [
+        "Level 2"
+      ],
+      "SubEmailFolders": [
+      ]
+    }    
+  ]
+}

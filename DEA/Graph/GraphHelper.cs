@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using WriteLog;
 using DEA2Levels;
 using DEAHelper1Leve;
-using ReadSettings;
+using ReadAppSettings;
 using CreateMetadataFile; // Might need to use this later so leaving it.
 using System.Diagnostics;
 
@@ -73,25 +73,26 @@ namespace DEA
         public static async Task InitializGetAttachment()
         {
             // Calls and assigne everything from ReadSettingsClass class.
-            var EmailCheckList = new ReadSettingsClass();
+            ReadAppSettingsClass.ReadAppSettingsObject readAppSettings = ReadAppSettingsClass.ReadAppConfig<ReadAppSettingsClass.ReadAppSettingsObject>();
+            ReadAppSettingsClass.Appsetting appSettings = readAppSettings.AppSettings!.FirstOrDefault()!;
 
             // Loops through all the emails from user accounts property.
-            foreach (string Email in EmailCheckList.UserAccounts!)
+            foreach (string userEmail in appSettings.UserAccounts!)
             {
                 // Check emails and match them to execute the correct function.
                 try
                 {
                     // Regex should match any email address that look like accounting2@efakturamottak.no.
                     Regex EmailRegEx = new Regex(@"^accounting+(?=[0-9]{0,3}@[a-z]+[\.][a-z]{2,3})");
-                    if (EmailRegEx.IsMatch(Email))
+                    if (EmailRegEx.IsMatch(userEmail))
                     {
                         // Calls the function for reading accounting emails for attachments.                        
-                        await GraphHelper1LevelClass.GetEmailsAttacments1Level(graphClient!, Email);
+                        await GraphHelper1LevelClass.GetEmailsAttacments1Level(graphClient!, userEmail);
                     }
                     else
                     {
                         // Calls the function to read ATC emails.
-                        await GraphHelper2Levels.GetEmailsAttacmentsAccount(graphClient!, Email);
+                        await GraphHelper2Levels.GetEmailsAttacmentsAccount(graphClient!, userEmail);
                     }
                 }
                 catch (Exception ex)
