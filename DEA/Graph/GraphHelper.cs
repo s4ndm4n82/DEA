@@ -4,10 +4,10 @@ using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using WriteLog;
 using DEA2Levels;
-using DEAHelper1Leve;
+using GraphHelper1Level;
 using ReadAppSettings;
 using CreateMetadataFile; // Might need to use this later so leaving it.
-using System.Diagnostics;
+using System.Diagnostics; // Might need to use this later so leaving it.
 
 namespace DEA
 {
@@ -83,17 +83,17 @@ namespace DEA
                 try
                 {
                     // Regex should match any email address that look like accounting2@efakturamottak.no.
-                    Regex EmailRegEx = new Regex(@"^accounting+(?=[0-9]{0,3}@[a-z]+[\.][a-z]{2,3})");
+                    /*Regex EmailRegEx = new Regex(@"^accounting+(?=[0-9]{0,3}@[a-z]+[\.][a-z]{2,3})");
                     if (EmailRegEx.IsMatch(userEmail))
                     {
                         // Calls the function for reading accounting emails for attachments.                        
                         await GraphHelper1LevelClass.GetEmailsAttacments1Level(graphClient!, userEmail);
                     }
                     else
-                    {
+                    {*/
                         // Calls the function to read ATC emails.
                         await GraphHelper2Levels.GetEmailsAttacmentsAccount(graphClient!, userEmail);
-                    }
+                    //}
                 }
                 catch (Exception ex)
                 {
