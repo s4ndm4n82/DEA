@@ -166,7 +166,7 @@ namespace DEA2Levels
                                     }
                                     else
                                     {
-                                        TrueAttachmentName = Regex.Replace(TrueAttachmentName, @"[\,\:\;\\\/]+", "");
+                                        TrueAttachmentName = Regex.Replace(TrueAttachmentName, @"[\,\:\;\+\\\/\(\)\[\]\{\}\*]+", "");
                                     }
 
                                     WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
