@@ -120,7 +120,7 @@ namespace GraphHelper1Level
                         if (Message.Attachments.Count() > 0)
                         {
                             // Selects only attachments with accepted extentionand file size above 10Kb. Except for pdf files which are allowed to be below 10Kb.
-                            foreach (var Attachment in Message.Attachments.Where(x => AcceptedExtentions!.Contains(Path.GetExtension(x.Name.ToLower())) && x.Size > 10240 || (x.Name.ToLower().EndsWith(".pdf") && x.Size < 10240)))
+                            foreach (var Attachment in Message.Attachments.Where(x => AcceptedExtentions!.Contains(Path.GetExtension(x.Name.ToLower())) && x.Size > 11264 || (x.Name.ToLower().EndsWith(".pdf") && x.Size < 11264)))
                             {
                                 Count++; // Count the for each execution once complete triggers the move.
 
@@ -153,10 +153,10 @@ namespace GraphHelper1Level
                                 else
                                 {
                                     string regexPattern = "[\\~#%&*{}/:;,_<>?|\"-]";
-                                    string replaceChar = " ";
+                                    string replaceChar = "_";
 
                                     Regex regexCleaner = new(regexPattern);
-                                    sanitizedFileName = Regex.Replace(regexCleaner.Replace(TrueAttachmentProps.Name, replaceChar), @"[\s]+", " ");
+                                    sanitizedFileName = Regex.Replace(regexCleaner.Replace(TrueAttachmentProps.Name, replaceChar), @"[\s]+", "");
                                 }
 
                                 WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");

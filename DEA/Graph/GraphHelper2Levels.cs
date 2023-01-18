@@ -133,7 +133,7 @@ namespace DEA2Levels
 
                             if (Message.Attachments.Count > 0)
                             {
-                                foreach (var Attachment in Message.Attachments.Where(x => AcceptedExtentions.Contains(Path.GetExtension(x.Name.ToLower())) && x.Size > 10240 || (x.Name.ToLower().EndsWith(".pdf") && x.Size < 10240)))
+                                foreach (var Attachment in Message.Attachments.Where(x => AcceptedExtentions.Contains(Path.GetExtension(x.Name.ToLower())) && x.Size > 11264 || (x.Name.ToLower().EndsWith(".pdf") && x.Size < 11264)))
                                 {
                                     Count++; // Count the for each execution once complete triggers the move.
 
@@ -168,10 +168,10 @@ namespace DEA2Levels
                                     else
                                     {
                                         string regexPattern = "[\\~#%&*{}/:;,<>?|\"-]";
-                                        string replaceChar = " ";
+                                        string replaceChar = "_";
 
                                         Regex regexCleaner = new(regexPattern);
-                                        fileName = Regex.Replace(regexCleaner.Replace(TrueAttachmentProps.Name, replaceChar), @"\s+", " ");
+                                        fileName = Regex.Replace(regexCleaner.Replace(TrueAttachmentProps.Name, replaceChar), @"[\s]+", "");
                                     }
 
                                     WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
