@@ -104,7 +104,7 @@ namespace DEA2Levels
                             var SecondFolderName = SecondSubFolderID.DisplayName;
 
                             // Extracted recipient email for creating the folder path.
-                            //var RecipientEmail = GetRecipientEmailClass.GetRecipientEmail(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email);                                            
+                            var RecipientEmail = GetRecipientEmailClass.GetRecipientEmail(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email);                                            
 
                             // Creating the destnation folders.
                             string[] MakeDestinationFolderPath = { ImportFolderPath, _Email, FirstFolderName, SecondFolderName };
@@ -150,32 +150,37 @@ namespace DEA2Levels
 
                                     // Details of the attachment.
                                     var TrueAttachmentProps = (FileAttachment)TrueAttachment;
-                                    string TrueAttachmentName = TrueAttachmentProps.Name;
                                     byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
                                     // Extracts the extention of the attachment file.
-                                    var AttExtention = Path.GetExtension(TrueAttachmentName).ToLower();
+                                    var AttExtention = Path.GetExtension(TrueAttachmentProps.Name).ToLower();
 
                                     // Check the name for "\", "/", and "c:".
                                     // If matched name is passed through the below function to normalize it.
+                                    string fileName = string.Empty;
                                     Regex MatchChar = new Regex(@"[\\\/c:]");
 
-                                    if (MatchChar.IsMatch(TrueAttachmentName.ToLower()))
+                                    if (MatchChar.IsMatch(TrueAttachmentProps.Name.ToLower()))
                                     {
-                                        TrueAttachmentName = Path.GetFileName(TrueAttachmentName);
+
+                                        fileName = Path.GetFileName(TrueAttachmentProps.Name);
                                     }
                                     else
                                     {
-                                        TrueAttachmentName = Regex.Replace(TrueAttachmentName, @"[\,\:\;\+\\\/\(\)\[\]\{\}\*]+", "");
+                                        string regexPattern = "[\\~#%&*{}/:;,<>?|\"-]";
+                                        string replaceChar = " ";
+
+                                        Regex regexCleaner = new(regexPattern);
+                                        fileName = Regex.Replace(regexCleaner.Replace(TrueAttachmentProps.Name, replaceChar), @"\s+", " ");
                                     }
 
                                     WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 
                                     // Saves the file to the local hard disk.
-                                    GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, TrueAttachmentName, TruAttachmentBytes);
+                                    GraphHelper.DownloadAttachedFiles(PathFullDownloadFolder, fileName, TruAttachmentBytes);
 
-                                    WriteLogClass.WriteToLog(3, $"Downloaded attachments from {Message.Subject}   ....");
-                                    WriteLogClass.WriteToLog(3, $"Attachment name {TrueAttachmentName}");
+                                    WriteLogClass.WriteToLog(3, $"Downloaded attachments from {RecipientEmail}   ....");
+                                    WriteLogClass.WriteToLog(3, $"Attachment name {fileName}");
 
                                     // Creating the metdata file.
                                     //var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email, PathFullDownloadFolder, TrueAttachmentName);
@@ -184,7 +189,9 @@ namespace DEA2Levels
 
                             if (Count > 0 && System.IO.Directory.Exists(PathFullDownloadFolder) && System.IO.Directory.EnumerateFiles(PathFullDownloadFolder, "*", SearchOption.AllDirectories).Any())
                             {
-                                WriteLogClass.WriteToLog(3, "Moving downloaded files to local folder ....");
+                                string lastFolder = PathFullDownloadFolder.Split(Path.DirectorySeparatorChar).Last();
+                                string destinatioFullPath = Path.Combine(DestinationFolderPath, lastFolder);
+                                WriteLogClass.WriteToLog(3, $"Moving downloaded files to {destinatioFullPath} ....");
 
                                 // Moves the downloaded files to destination folder. This would create the folder path if it's missing.
                                 if (GraphHelper.MoveFolder(PathFullDownloadFolder, DestinationFolderPath))
