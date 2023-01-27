@@ -152,27 +152,17 @@ namespace DEA2Levels
                                     var TrueAttachmentProps = (FileAttachment)TrueAttachment;
                                     byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
-                                    // Extracts the extention of the attachment file.
-                                    var AttExtention = Path.GetExtension(TrueAttachmentProps.Name).ToLower();
+                                    // Get file name and extention sepratly.
+                                    var attachmentExtention = Path.GetExtension(TrueAttachmentProps.Name).ToLower();
+                                    var attachmentFileName = Path.GetFileNameWithoutExtension(TrueAttachmentProps.Name);
 
-                                    // Check the name for "\", "/", and "c:".
-                                    // If matched name is passed through the below function to normalize it.
-                                    string fileName = string.Empty;
-                                    Regex MatchChar = new Regex(@"[\\\/c:]");
+                                    // Strips the filename of invalid charaters and replace them with "_".
+                                    string regexPattern = "[\\~#%&*{}/:;,.<>?|\"-]";
+                                    string replaceChar = "_";
+                                    Regex regexCleaner = new(regexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-                                    if (MatchChar.IsMatch(TrueAttachmentProps.Name.ToLower()))
-                                    {
-
-                                        fileName = Path.GetFileName(TrueAttachmentProps.Name);
-                                    }
-                                    else
-                                    {
-                                        string regexPattern = "[\\~#%&*{}/:;,<>?|\"-]";
-                                        string replaceChar = "_";
-
-                                        Regex regexCleaner = new(regexPattern);
-                                        fileName = Regex.Replace(regexCleaner.Replace(TrueAttachmentProps.Name, replaceChar), @"[\s]+", "");
-                                    }
+                                    // Making the full file name after cleaning it.
+                                    string fileName = Path.ChangeExtension(Regex.Replace(regexCleaner.Replace(attachmentFileName, replaceChar), @"[\s]+", ""), attachmentExtention);
 
                                     WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 
@@ -181,7 +171,7 @@ namespace DEA2Levels
 
                                     WriteLogClass.WriteToLog(3, $"Downloaded attachments from {RecipientEmail}   ....");
                                     WriteLogClass.WriteToLog(3, $"Attachment name {fileName}");
-
+                                    
                                     // Creating the metdata file.
                                     //var FileFlag = CreateMetaDataXml.GetToEmail4Xml(graphClient, FirstSubFolderID.Id, SecondSubFolderID.Id, StaticThirdSubFolderID, Message.Id, _Email, PathFullDownloadFolder, TrueAttachmentName);
                                 }
