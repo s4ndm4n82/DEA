@@ -93,7 +93,8 @@ namespace GraphHelper1Level
                         var RecipientEmail = GetRecipientEmailClass.GetRecipientEmail(graphClient, FirstSubFolderID.Id, null!, StaticThirdSubFolderID, Message.Id, _Email);
 
                         // Creating the destnation folders.
-                        string[] MakeDestinationFolderPath = { ImportFolderPath, _Email, FirstFolderName, RecipientEmail };
+                        //string[] MakeDestinationFolderPath = { ImportFolderPath, _Email, FirstFolderName, RecipientEmail };
+                        string[] MakeDestinationFolderPath = { ImportFolderPath, _Email, FirstFolderName };// Recipient email makes another folder with in the import main main folder don't use.
                         var DestinationFolderPath = Path.Combine(MakeDestinationFolderPath);
 
                         // Calls the folder cleaner to remove empty folders.
@@ -115,7 +116,8 @@ namespace GraphHelper1Level
                         // This has to be called here. Don't put it within the for loop or it will start calling this
                         // each time and make folder for each file. Also calling this out side of the extentions FOR loop.
                         // causes an exception error at the "DownloadFileExistTest" test due file not been available.
-                        PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders("Download"), GraphHelper.FolderNameRnd(10));
+                        //PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders("Download"), GraphHelper.FolderNameRnd(10));
+                        PathFullDownloadFolder = Path.Combine(GraphHelper.CheckFolders("Download"), RecipientEmail); // Randome numbers is causing an issu with FTP import.
 
                         if (Message.Attachments.Count() > 0)
                         {
