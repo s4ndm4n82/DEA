@@ -168,7 +168,7 @@ namespace GraphHelper1Level
                         if (Count > 0 && System.IO.Directory.Exists(PathFullDownloadFolder) && System.IO.Directory.EnumerateFiles(PathFullDownloadFolder, "*", SearchOption.AllDirectories).Any())
                         {
                             string lastFolder = PathFullDownloadFolder.Split(Path.DirectorySeparatorChar).Last();
-                            string destinatioFullPath = Path.Combine(DestinationFolderPath, lastFolder);
+                            string destinatioFullPath = Path.Combine(DestinationFolderPath, lastFolder.ToLower());
                             WriteLogClass.WriteToLog(3, $"Moving downloaded files to {destinatioFullPath} ....");
 
                             // Moves the downloaded files to destination folder. This would create the folder path if it's missing.

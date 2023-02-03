@@ -233,6 +233,10 @@ namespace DEA
 
                         if (!System.IO.Directory.Exists(DestinationPath))
                         {
+                            if (System.IO.File.Exists(DestinationPath))
+                            {
+                                System.IO.File.Delete(DestinationPath);
+                            }
                             System.IO.File.Move(SourcePath, DestinationPath); // Moves the files to the destination path.
 
                             WriteLogClass.WriteToLog(3, $"Moving file {SourceFileName}");
