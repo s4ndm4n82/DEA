@@ -227,17 +227,21 @@ namespace DEA
 
                     foreach (var SourceFile in SourceFiles) // Loop throug the files list.
                     {
-                        var SourceFileName = System.IO.Path.GetFileName(SourceFile); // Get the source file name.
+                        var SourceFileName = Path.GetFileName(SourceFile); // Get the source file name.
+                        var SourceFilenameOnly = Path.GetFileNameWithoutExtension(SourceFile); // Get the file name only.
+                        var SourceFileExtention = Path.GetExtension(SourceFile); // Get the source file extention.
                         var SourcePath = Path.Combine(SourceFolder, SourceFileName); // Makes the full source path.
-                        var DestinationPath = Path.Combine(FullDestinationPath, SourceFileName); // Makes the full destination path.
+                        var DestinationFullPath = Path.Combine(FullDestinationPath, SourceFileName); // Makes the full destination path.
 
-                        if (!System.IO.Directory.Exists(DestinationPath))
+                        if (!System.IO.Directory.Exists(DestinationFullPath))
                         {
-                            if (System.IO.File.Exists(DestinationPath))
+                            int count = 1;
+                            while (System.IO.File.Exists(DestinationFullPath))
                             {
-                                System.IO.File.Delete(DestinationPath);
+                                var newFileName = string.Format("{0}({1})", SourceFilenameOnly, count++); //Increament by one and create a new file name.
+                                DestinationFullPath = Path.Combine(FullDestinationPath, newFileName + SourceFileExtention);
                             }
-                            System.IO.File.Move(SourcePath, DestinationPath); // Moves the files to the destination path.
+                            System.IO.File.Move(SourcePath, DestinationFullPath); // Moves the files to the destination path.
 
                             WriteLogClass.WriteToLog(3, $"Moving file {SourceFileName}");
                         }
