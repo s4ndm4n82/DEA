@@ -152,6 +152,8 @@ namespace GraphHelper1Level
                                 // Making the full file name after cleaning it.
                                 string fileName = Path.ChangeExtension(Regex.Replace(regexCleaner.Replace(attachmentFileName, replaceChar), @"[\s]+", ""), attachmentExtention);
 
+                                // Test push
+
                                 WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 
                                 // Saves the file to the local hard disk.
