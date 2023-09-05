@@ -1,13 +1,12 @@
-﻿using DEA;
-using FolderCleaner;
+﻿using FolderCleaner;
 using GetRecipientEmail;
 using Microsoft.Graph;
 using ReadAppSettings;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
+using CleanFileNames;
 using WriteLog;
 
-namespace GraphHelper1Level
+namespace DEA.Graph
 {
     internal class GraphHelper1LevelClass
     {
@@ -122,7 +121,7 @@ namespace GraphHelper1Level
                         if (Message.Attachments.Count() > 0)
                         {
                             // Selects only attachments with accepted extentionand file size above 10Kb. Except for pdf files which are allowed to be below 10Kb.
-                            foreach (var Attachment in Message.Attachments.Where(x => AcceptedExtentions!.Contains(Path.GetExtension(x.Name.ToLower())) && x.Size > 11264 || (x.Name.ToLower().EndsWith(".pdf") && x.Size < 11264)))
+                            foreach (var Attachment in Message.Attachments.Where(x => AcceptedExtentions!.Contains(Path.GetExtension(x.Name.ToLower())) && x.Size > 11264 || x.Name.ToLower().EndsWith(".pdf") && x.Size < 11264))
                             {
                                 Count++; // Count the for each execution once complete triggers the move.
 
@@ -137,20 +136,14 @@ namespace GraphHelper1Level
                                                 .GetAsync();
 
                                 // Details of the attachment.
-                                var TrueAttachmentProps = (FileAttachment)TrueAttachment;                                
+                                var TrueAttachmentProps = (FileAttachment)TrueAttachment;
                                 byte[] TruAttachmentBytes = TrueAttachmentProps.ContentBytes;
 
                                 // Get file name and extention sepratly.
-                                var attachmentExtention = Path.GetExtension(TrueAttachmentProps.Name).ToLower();
-                                var attachmentFileName = Path.GetFileNameWithoutExtension(TrueAttachmentProps.Name);
+                                string attachmentExtention = Path.GetExtension(TrueAttachmentProps.Name).ToLower();
+                                string attachmentFileName = Path.GetFileNameWithoutExtension(TrueAttachmentProps.Name);                                
 
-                                // Strips the filename of invalid charaters and replace them with "_".
-                                string regexPattern = @"[\\~#%&*{}/:<>?|""-]";
-                                string replaceChar = "_";
-                                Regex regexCleaner = new(regexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-
-                                // Making the full file name after cleaning it.
-                                string fileName = Path.ChangeExtension(Regex.Replace(regexCleaner.Replace(attachmentFileName, replaceChar), @"[\s]+", ""), attachmentExtention);
+                                string fileName = CleanFileNamesClass.CleanFileName(attachmentFileName, attachmentExtention);
 
                                 WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 

@@ -157,7 +157,7 @@ namespace DEA2Levels
                                     var attachmentFileName = Path.GetFileNameWithoutExtension(TrueAttachmentProps.Name);
 
                                     // Strips the filename of invalid charaters and replace them with "_".
-                                    string regexPattern = @"[\\~#%&*{}/:<>?|""-]";
+                                    string regexPattern = @"[\\~#%&*{}/:<>?|""-\.]";
                                     string replaceChar = "_";
                                     Regex regexCleaner = new(regexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
