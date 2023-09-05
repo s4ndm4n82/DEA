@@ -11,13 +11,13 @@ namespace FolderCleaner
             {                
                 var LastFolderName = FolderPath.Split(Path.DirectorySeparatorChar).Last();
 
-                Regex LastFolderNameMatch = new Regex(@"[0-9a-z]+@efakturamottak\.no");
+                /*Regex LastFolderNameMatch = new Regex(@"[0-9a-z]+@efakturamottak\.no");
 
                 if (LastFolderNameMatch.IsMatch(LastFolderName.ToLower()))
                 {
                     var CleaningFolderPath = Directory.GetParent(FolderPath);
                     FolderPath = CleaningFolderPath!.FullName;
-                }              
+                }*/
 
                 WriteLogClass.WriteToLog(3, $"Cleaning folder path {FolderPath} ....");
 

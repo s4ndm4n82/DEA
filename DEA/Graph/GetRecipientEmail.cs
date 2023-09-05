@@ -54,15 +54,15 @@ namespace GetRecipientEmail
                             .GetAsync();
                 }
 
-                ToEmails = GetToEmail.Result.InternetMessageHeaders.Where(adrs => adrs.Value.Contains("@efakturamottak.no"));
+                ToEmails = GetToEmail.Result.InternetMessageHeaders.Where(adrs => adrs.Value.ToLower().Contains("@efakturamottak.no"));
 
                 foreach (var ToEmail in ToEmails)
                 {
                     if (!string.IsNullOrEmpty(ToEmail.Value))
                     {
                         string RegExString = @"[0-9a-z]+@efakturamottak\.no";
-                        Regex RecivedEmail = new Regex(RegExString, RegexOptions.IgnoreCase);
-                        var ExtractedEmail = RecivedEmail.Match(ToEmail.Value);
+                        Regex RecivedEmail = new(RegExString, RegexOptions.IgnoreCase);
+                        var ExtractedEmail = RecivedEmail.Match(ToEmail.Value.ToLower());
 
                         if (ExtractedEmail.Success)
                         {

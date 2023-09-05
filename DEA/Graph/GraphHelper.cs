@@ -83,17 +83,17 @@ namespace DEA
                 try
                 {
                     // Regex should match any email address that look like accounting2@efakturamottak.no.
-                    Regex EmailRegEx = new Regex(@"^accounting+(?=[0-9]{0,3}@[a-z]+[\.][a-z]{2,3})");
+                    /*Regex EmailRegEx = new Regex(@"^accounting+(?=[0-9]{0,3}@[a-z]+[\.][a-z]{2,3})");
                     if (EmailRegEx.IsMatch(userEmail))
-                    {
+                    {*/
                         // Calls the function for reading accounting emails for attachments.                        
                         await GraphHelper1LevelClass.GetEmailsAttacments1Level(graphClient!, userEmail);
-                    }
+                    /*}
                     else
                     {
                         // Calls the function to read ATC emails.
                         await GraphHelper2Levels.GetEmailsAttacmentsAccount(graphClient!, userEmail);
-                    }
+                    }*/
                 }
                 catch (Exception ex)
                 {
@@ -117,8 +117,6 @@ namespace DEA
         // Check the exsistance of the download folders.
         public static string CheckFolders(string FolderSwitch)
         {
-            // Get current execution path.
-            string FolderPath = string.Empty;
             string? PathRootFolder = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             string DownloadFolderName = "Download";
             string LogFolderName = "Logs";
@@ -150,6 +148,8 @@ namespace DEA
                 }
             }
 
+            // Get current execution path.
+            string FolderPath;
             if (FolderSwitch == "Download")
             {
                 FolderPath = PathDownloadFolder;
@@ -227,13 +227,21 @@ namespace DEA
 
                     foreach (var SourceFile in SourceFiles) // Loop throug the files list.
                     {
-                        var SourceFileName = System.IO.Path.GetFileName(SourceFile); // Get the source file name.
+                        var SourceFileName = Path.GetFileName(SourceFile); // Get the source file name.
+                        var SourceFilenameOnly = Path.GetFileNameWithoutExtension(SourceFile); // Get the file name only.
+                        var SourceFileExtention = Path.GetExtension(SourceFile); // Get the source file extention.
                         var SourcePath = Path.Combine(SourceFolder, SourceFileName); // Makes the full source path.
-                        var DestinationPath = Path.Combine(FullDestinationPath, SourceFileName); // Makes the full destination path.
+                        var DestinationFullPath = Path.Combine(FullDestinationPath, SourceFileName); // Makes the full destination path.
 
-                        if (!System.IO.Directory.Exists(DestinationPath))
+                        if (!System.IO.Directory.Exists(DestinationFullPath))
                         {
-                            System.IO.File.Move(SourcePath, DestinationPath); // Moves the files to the destination path.
+                            int count = 1;
+                            while (System.IO.File.Exists(DestinationFullPath))
+                            {
+                                var newFileName = string.Format("{0}({1})", SourceFilenameOnly, count++); //Increament by one and create a new file name.
+                                DestinationFullPath = Path.Combine(FullDestinationPath, newFileName + SourceFileExtention);
+                            }
+                            System.IO.File.Move(SourcePath, DestinationFullPath); // Moves the files to the destination path.
 
                             WriteLogClass.WriteToLog(3, $"Moving file {SourceFileName}");
                         }
