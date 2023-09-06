@@ -7,6 +7,7 @@ using WriteLog;
 using FolderCleaner;
 using GetRecipientEmail; // Might need it later.
 using CreateMetadataFile; // Might need to use this later so leaving it.
+using CleanFileNames;
 
 namespace DEA2Levels
 {
@@ -156,13 +157,8 @@ namespace DEA2Levels
                                     var attachmentExtention = Path.GetExtension(TrueAttachmentProps.Name).ToLower();
                                     var attachmentFileName = Path.GetFileNameWithoutExtension(TrueAttachmentProps.Name);
 
-                                    // Strips the filename of invalid charaters and replace them with "_".
-                                    string regexPattern = @"[\\~#%&*{}/:<>?|""-\.]";
-                                    string replaceChar = "_";
-                                    Regex regexCleaner = new(regexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
-
-                                    // Making the full file name after cleaning it.
-                                    string fileName = Path.ChangeExtension(Regex.Replace(regexCleaner.Replace(attachmentFileName, replaceChar), @"[\s]+", ""), attachmentExtention);
+                                    // Full filename after cleaning and reducing the length.
+                                    string fileName = CleanFileNamesClass.CleanFileName(attachmentFileName, attachmentExtention);
 
                                     WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
 

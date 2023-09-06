@@ -143,6 +143,7 @@ namespace DEA.Graph
                                 string attachmentExtention = Path.GetExtension(TrueAttachmentProps.Name).ToLower();
                                 string attachmentFileName = Path.GetFileNameWithoutExtension(TrueAttachmentProps.Name);                                
 
+                                // Full filename after cleaning and reducing the length.
                                 string fileName = CleanFileNamesClass.CleanFileName(attachmentFileName, attachmentExtention);
 
                                 WriteLogClass.WriteToLog(3, $"Starting attachment download from {Message.Subject} ....");
